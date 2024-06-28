@@ -1,0 +1,38 @@
+@startuml main-sequence
+
+participant main
+participant epcHelper
+participant nrHelper
+participant nrSlHelper
+
+participant ueVoiceContainer
+participant mobilityHelper
+
+participant bandsl
+
+nrHelper <- epcHelper: setEpcHelper(epcHelper)
+nrSlHelper <- epcHelper: setNrHelper(epcHelper)
+
+mobilityHelper <- ueVoiceContainer : Install()
+
+nrHelper <- bandsl : InitializeOperationBand()
+
+create allBwps
+bandsl -> allBwps : CcBwpCreator::GetAllBwps({bandSl})
+
+epcHelper -> epcHelper : setAttributes()
+nrHelper -> nrHelper : setAttributes()
+
+create ueVoiceNetDev
+nrHelper -> ueVoiceNetDev : InstallUeDevice(ueVoiceContainer, allBwps)
+ueVoiceNetDev -> ueVoiceNetDev : UpdateConfig()
+
+
+
+
+
+
+
+
+
+@enduml

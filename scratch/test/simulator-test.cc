@@ -43,10 +43,8 @@ int main(int argc, char* argv[])
 
     // NR parameters. We will take the input from the command line, and then we
     // will pass them inside the NR module.
-    uint16_t numerologyBwpSl = NUMEROLOGY_BWP_SL;
     double centralFrequencyBandSl = CENTRAL_FREQUENCY_BAND_SL; // band n47  TDD //Here band is analogous to channel
     uint16_t bandwidthBandSl = BANDWIDTH_BAND_SL;         // Multiple of 100 KHz; 400 = 40 MHz
-    double txPower = TX_POWER;                    // dBm
 
     // Where we will store the output files.
     std::string simTag = "default";
@@ -77,14 +75,13 @@ int main(int argc, char* argv[])
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //User Equipment
     NodeContainer ueVoiceContainer;
-    uint16_t ueNum = NUM_UE;
-    ueVoiceContainer.Create(ueNum);
+    ueVoiceContainer.Create(NUM_UE);
 
     // Static position of the UEs
     MobilityHelper mobility;
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    mobility.SetMobilityModel(MOBILITY_MODEL);
     Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
-    for (uint16_t i = 0; i < ueNum; i++)
+    for (uint16_t i = 0; i < NUM_UE; i++)
     {
         positionAllocUe->Add(Vector(interUeDistance * i, 0.0, 1.5));
     }
@@ -106,14 +103,13 @@ int main(int argc, char* argv[])
     // Create the bands
     BandwidthPartInfoPtrVector allBwps;
     CcBwpCreator ccBwpCreator;
-    const uint8_t numCcPerBand = 1; // Number of component carriers per band
 
-    BandwidthPartInfo::Scenario bandwidthPartScenario = BandwidthPartInfo::Scenario::UMi_StreetCanyon;
+    BandwidthPartInfo::Scenario scenario = BandwidthPartInfo::Scenario::UMi_StreetCanyon;
 
     CcBwpCreator::SimpleOperationBandConf bandConfSl(centralFrequencyBandSl,
                                                      bandwidthBandSl,
-                                                     numCcPerBand,
-                                                     bandwidthPartScenario);
+                                                     NUM_CC_PER_BAND,
+                                                         scenario);
 
     // Create the bands
     OperationBandInfo bandSl = ccBwpCreator.CreateOperationBandContiguousCc(bandConfSl);
@@ -126,9 +122,9 @@ int main(int argc, char* argv[])
     /////////////////////////////////////////
 
     // Maybe I can't do what I want with these parameters :
-    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)));
-    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(0)));
-    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(false));
+    Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(THREE_GPP_CHANNEL_MODEL_UPDATE_PERIOD)));
+    nrHelper->SetChannelConditionModelAttribute("UpdatePeriod", TimeValue(MilliSeconds(NR_H_CHANNEL_MODEL_UPDATE_PERIOD_CONDITION)));
+    nrHelper->SetPathlossAttribute("ShadowingEnabled", BooleanValue(NR_H_SHADOWING_ENABLED));
 
     // initialize all the spectrum
     nrHelper->InitializeOperationBand(&bandSl);
@@ -141,38 +137,37 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
     // 1. Configure the attribute through the helper, and then install;
     // Core latency
-    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
+    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(EPC_H_S1uLinkDelay)));
 
     //antenna configuration quasi-omnidirectional transmission and reception (default configuration of the beams)
-    nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(1));
-    nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(2));
+    nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(NR_H_ANTENNA_NumRows));
+    nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(NR_H_ANTENNA_NumColumns));
     nrHelper->SetUeAntennaAttribute("AntennaElement",PointerValue(CreateObject<IsotropicAntennaModel>()));
 
     // Physical layer configuration
-    nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPower));
+    nrHelper->SetUePhyAttribute("TxPower", DoubleValue(NR_H_PHY_TxPower));
 
     // Mac layer configuration
-    nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
-    nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
-    nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
-    nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
-    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(MilliSeconds(100)));
-    nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(4));
-    nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(true));
+    nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(NR_H_MAC_EnableSensing));
+    nrHelper->SetUeMacAttribute("T1", UintegerValue(NR_H_MAC_T1));
+    nrHelper->SetUeMacAttribute("T2", UintegerValue(NR_H_MAC_T2));
+    nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(NR_H_MAC_ActivePoolId));
+    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(MilliSeconds(NR_H_MAC_ReservationPeriod)));
+    nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(NR_H_MAC_NumSidelinkProcess));
+    nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(NR_H_MAC_EnableBlindReTx));
 
-    uint8_t bwpIdForGbrMcptt = 0;
 
-    nrHelper->SetBwpManagerTypeId(TypeId::LookupByName("ns3::NrSlBwpManagerUe"));
+    nrHelper->SetBwpManagerTypeId(TypeId::LookupByName(NR_H_MANAGER_TYPE));
     // following parameter has no impact at the moment because:
     // 1. No support for PQI based mapping between the application and the LCs
     // 2. No scheduler to consider PQI
     // However, till such time all the NR SL examples should use GBR_MC_PUSH_TO_TALK
     // because we hard coded the PQI 65 in UE RRC.
     nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_MC_PUSH_TO_TALK",
-                                                UintegerValue(bwpIdForGbrMcptt));
+                                                UintegerValue(NR_H_MAC_MANAGER_GBR_MC_PUSH_TO_TALK));
 
     std::set<uint8_t> bwpIdContainer;
-    bwpIdContainer.insert(bwpIdForGbrMcptt);
+    bwpIdContainer.insert(NR_H_MAC_MANAGER_GBR_MC_PUSH_TO_TALK);
 
     ////////////////////////////////////////////////////////////
     // 2. Attributes valid for a subset of the nodes
@@ -201,15 +196,14 @@ int main(int argc, char* argv[])
     nrSlHelper->SetEpcHelper(epcHelper);
 
     // Error model and the adaptive modulation coding with the MCS (AMC)
-    std::string errorModel = "ns3::NrEesmIrT1";
-    nrSlHelper->SetSlErrorModel(errorModel);
+    nrSlHelper->SetSlErrorModel(SL_H_ERROR_MODEL);
     // AMC -> Adaptative Modulation and Coding
     nrSlHelper->SetUeSlAmcAttribute("AmcModel", EnumValue(NrAmc::ErrorModel));
 
     // Sidelink scheduler attributes with fix MCS value
     nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
-    nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(true));
-    nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
+    nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(SL_H_FixNrSlMcs));
+    nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(SL_H_InitialNrSlMcs));
 
     // IMPORTANT: Prepare the UEs for sidelink
     nrSlHelper->PrepareUeForSidelink(ueVoiceNetDev, bwpIdContainer);
@@ -219,22 +213,25 @@ int main(int argc, char* argv[])
     Ptr<NrSlCommPreconfigResourcePoolFactory> ptrFactory = Create<NrSlCommPreconfigResourcePoolFactory>();
 
     std::vector<std::bitset<1>> slBitmap = {1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1};
+
     ptrFactory->SetSlTimeResources(slBitmap);
-    ptrFactory->SetSlSensingWindow(100); // T0 in ms
-    ptrFactory->SetSlSelectionWindow(5);
-    ptrFactory->SetSlFreqResourcePscch(10); // PSCCH RBs
-    ptrFactory->SetSlSubchannelSize(50);
-    ptrFactory->SetSlMaxNumPerReserve(3);
+    ptrFactory->SetSlSensingWindow(F_SL_TIME_RESOURCE); // T0 in ms
+    ptrFactory->SetSlSelectionWindow(F_SL_SELECTION_WINDOW);
+    ptrFactory->SetSlFreqResourcePscch(F_SL_FREQ_RESOURCE_PSCCH); // PSCCH RBs
+    ptrFactory->SetSlSubchannelSize(F_SL_SUBCHANNEL_SIZE);
+    ptrFactory->SetSlMaxNumPerReserve(F_SL_MAX_NUM_PER_RESERVE);
     // Once parameters are configured, we can create the pool
     LteRrcSap::SlResourcePoolNr pool = ptrFactory->CreatePool();
     slResourcePoolNr = pool;
 
-    LteRrcSap::SlResourcePoolConfigNr slresoPoolConfigNr;
-    slresoPoolConfigNr.haveSlResourcePoolConfigNr = true;
-
     uint16_t poolId = 0;
     LteRrcSap::SlResourcePoolIdNr slResourcePoolIdNr;
     slResourcePoolIdNr.id = poolId;
+
+    LteRrcSap::SlResourcePoolConfigNr slresoPoolConfigNr;
+    slresoPoolConfigNr.haveSlResourcePoolConfigNr = SL_RESOURCE_POOL_CONFIG_NR;
+
+
     slresoPoolConfigNr.slResourcePoolId = slResourcePoolIdNr;
     slresoPoolConfigNr.slResourcePool = slResourcePoolNr;
 
@@ -243,22 +240,22 @@ int main(int argc, char* argv[])
 
     // Configure the BWP IE
     LteRrcSap::Bwp bwp;
-    bwp.numerology = numerologyBwpSl;
-    bwp.symbolsPerSlots = 14;
-    bwp.rbPerRbg = 1;
+    bwp.numerology = SL_NUMEROLOGY_BWP;
+    bwp.symbolsPerSlots = SL_SYMBOL_PER_SLOTS;
+    bwp.rbPerRbg = SL_RB_PER_RB_GROUP;
     bwp.bandwidth = bandwidthBandSl;
 
     // Configure the SlBwpGeneric IE
     LteRrcSap::SlBwpGeneric slBwpGeneric;
     slBwpGeneric.bwp = bwp;
-    slBwpGeneric.slLengthSymbols = LteRrcSap::GetSlLengthSymbolsEnum(14);
-    slBwpGeneric.slStartSymbol = LteRrcSap::GetSlStartSymbolEnum(0);
+    slBwpGeneric.slLengthSymbols = LteRrcSap::GetSlLengthSymbolsEnum(SL_NBR_SYMBOL_ALLOCATED_PER_SLOT);
+    slBwpGeneric.slStartSymbol = LteRrcSap::GetSlStartSymbolEnum(SL_FIRST_SYMBOL_ALLOCATED_IN_SLOT);
 
     // Configure the SlBwpConfigCommonNr IE
     LteRrcSap::SlBwpConfigCommonNr slBwpConfigCommonNr;
-    slBwpConfigCommonNr.haveSlBwpGeneric = true;
+    slBwpConfigCommonNr.haveSlBwpGeneric = SL_BWP_GENERIC;
     slBwpConfigCommonNr.slBwpGeneric = slBwpGeneric;
-    slBwpConfigCommonNr.haveSlBwpPoolConfigCommonNr = true;
+    slBwpConfigCommonNr.haveSlBwpPoolConfigCommonNr = SL_BWP_POOL_CONFIG_COMMON_NR;
     slBwpConfigCommonNr.slBwpPoolConfigCommonNr = slBwpPoolConfigCommonNr;
 
     LteRrcSap::SlFreqConfigCommonNr slFreConfigCommonNr;
@@ -270,7 +267,7 @@ int main(int argc, char* argv[])
 
     // Configure the TddUlDlConfigCommon IE
     LteRrcSap::TddUlDlConfigCommon tddUlDlConfigCommon;
-    tddUlDlConfigCommon.tddPattern = "DL|DL|DL|F|UL|UL|UL|UL|UL|UL|";
+    tddUlDlConfigCommon.tddPattern = SL_TDD_PATTERN;
 
     // Configure the SlPreconfigGeneralNr IE
     LteRrcSap::SlPreconfigGeneralNr slPreconfigGeneralNr;
@@ -278,10 +275,10 @@ int main(int argc, char* argv[])
 
     // Configure the SlUeSelectedConfig IE
     LteRrcSap::SlUeSelectedConfig slUeSelectedPreConfig;
-    slUeSelectedPreConfig.slProbResourceKeep = 0;
+    slUeSelectedPreConfig.slProbResourceKeep = SL_PROB_RESOURCE_KEEP;
     // Configure the SlPsschTxParameters IE
     LteRrcSap::SlPsschTxParameters psschParams;
-    psschParams.slMaxTxTransNumPssch = 5;
+    psschParams.slMaxTxTransNumPssch = SL_MAX_TX_TRANS_NUM_PSSCH;
     // Configure the SlPsschTxConfigList IE
     LteRrcSap::SlPsschTxConfigList pscchTxConfigList;
     pscchTxConfigList.slPsschTxParameters[0] = psschParams;
@@ -306,17 +303,19 @@ int main(int argc, char* argv[])
     InternetStackHelper internet;
     internet.Install(ueVoiceContainer);
     stream += internet.AssignStreams(ueVoiceContainer, stream);
-    uint32_t dstL2Id = 255;
-    Ipv4Address groupAddress4("225.0.0.0"); // use multicast address as destination
+    uint32_t dstL2Id = DST_L2_ID;
+    Ipv4Address groupAddress4(IP_GROUP_ADDRESS); // use multicast address as destination
     Address remoteAddress;
     Address localAddress;
-    uint16_t port = 8000;
+    uint16_t port = PORT;
+    // each node need a traffic flow template (TFT) to manage like a filter the incoming packets and
+    // improve the efficiency with the ip address and the port...
     Ptr<LteSlTft> tft;
 
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(ueVoiceNetDev);
 
-    // set the default gateway for the UE
+    // set the default gateway for the UE --> usefully to count the packet and the bits sent and received
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
     for (uint32_t u = 0; u < ueVoiceContainer.GetN(); ++u)
     {
@@ -334,7 +333,7 @@ int main(int argc, char* argv[])
 // Application configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     OnOffHelper sidelinkClient("ns3::UdpSocketFactory", remoteAddress);
-    sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+    sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(APP_EnableSeqTsSizeHeader));
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
     std::cout << "Data rate " << DataRate(dataRateBeString) << std::endl;
     sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);

@@ -40,6 +40,25 @@ Build profile: debug
 
 Each simulator.cc with some other .cc and .h have to be in the same subdirectory for working.
 
+#### Analyse example
+### NrPointToPointEpcHelper
+1. set attribute "S1uLinkDelay" to 0ms
+2. assign IP address with the net device container
+
+### NrHelper
+1. set the epcHelper
+2. set the attributes (channel, bands, antenna, PHY, MAC, bandwidth part manager)
+3. install and get the net device container
+4. assign its stream
+
+### NrSlHelper
+1. set the epcHelper
+2. set the attributes
+3. prepare the ues for sidelink with the net device container and the bwp id container
+4. install the preconfig for net device container
+5. assign its stream
+6. activate the nr sidelink bearer
+
 ### NR V2X stack
 
 Parameter for me :
