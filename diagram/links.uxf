@@ -1,0 +1,1041 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>7</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1267</x>
+      <y>0</y>
+      <w>70</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>Vector
+bg=BLUE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1218</x>
+      <y>49</y>
+      <w>224</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>Ptr&lt;ListPositionAllocator&gt; positionAllocUe
+bg=BLUE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1218</x>
+      <y>112</y>
+      <w>161</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>MobilityHelper mobility
+--
+SetMobilityModel()
+bg=BLUE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1295</x>
+      <y>14</y>
+      <w>21</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-</panel_attributes>
+    <additional_attributes>10.0;50.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1295</x>
+      <y>63</y>
+      <w>126</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+SetPositionAllocator()</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1218</x>
+      <y>196</y>
+      <w>182</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>NodeContainer ueVoiceContainer
+bg=BLUE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1295</x>
+      <y>154</y>
+      <w>56</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+install()</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1904</x>
+      <y>469</y>
+      <w>245</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes>Ptr&lt;NrPointToPointEpcHelper&gt; epcHelper
+--
+SetAttribute()...
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1967</x>
+      <y>287</y>
+      <w>210</w>
+      <h>133</h>
+    </coordinates>
+    <panel_attributes>Ptr&lt;NrHelper&gt; nrHelper
+--
+SetChannelConditionModelAttribute()
+SetPathlossAttribute()
+SetUeAntennaAttribute()...
+SetUePhyAttribute()
+SetUeMacAttribute()...
+SetBwpManagerTypeId()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1540</x>
+      <y>826</y>
+      <w>623</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>Ptr&lt;NrSlHelper&gt; nrSlHelper
+--
+SetSlErrorModel()
+SetUeSlAmcAttribute()
+SetNrSlSchedulerTypeId()
+SetUeSlSchedulerAttribute()...</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2058</x>
+      <y>525</y>
+      <w>98</w>
+      <h>315</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+SetEpcHelper()</panel_attributes>
+    <additional_attributes>10.0;10.0;20.0;430.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2065</x>
+      <y>413</y>
+      <w>91</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+SetEpcHelper()</panel_attributes>
+    <additional_attributes>10.0;80.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1540</x>
+      <y>189</y>
+      <w>210</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>BandwidthPartInfoPtrVector allBwps
+bg=RED</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1995</x>
+      <y>126</y>
+      <w>161</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>CcBwpCreator ccBwpCreator
+bg=RED</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1995</x>
+      <y>189</y>
+      <w>161</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>OperationBandInfo bandSl
+bg=RED</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2072</x>
+      <y>140</y>
+      <w>203</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+CreateOperationBandContiguousCc()</panel_attributes>
+    <additional_attributes>10.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1743</x>
+      <y>189</y>
+      <w>266</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+CcBwpCreator::GetAllBwps()</panel_attributes>
+    <additional_attributes>10.0;20.0;360.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2072</x>
+      <y>203</y>
+      <w>140</w>
+      <h>98</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+InitializeOperationBand()</panel_attributes>
+    <additional_attributes>10.0;120.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2912</x>
+      <y>504</y>
+      <w>490</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>Config
+--
+Config::SetDefault("ns3::ThreeGppChannelModel::UpdatePeriod", TimeValue(MilliSeconds(100)))
+Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999))</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1610</x>
+      <y>371</y>
+      <w>161</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>uint8_t bwpIdForGbrMcptt</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1764</x>
+      <y>364</y>
+      <w>217</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+SetUeBwpManagerAlgorithmAttribute</panel_attributes>
+    <additional_attributes>290.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1631</x>
+      <y>693</y>
+      <w>196</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>std::set&lt;uint8_t&gt; bwpIdContainer</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1687</x>
+      <y>385</y>
+      <w>70</w>
+      <h>322</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+instert()</panel_attributes>
+    <additional_attributes>50.0;440.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1190</x>
+      <y>707</y>
+      <w>210</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>NetDeviceContainer ueVoiceNetDev
+bg=BLUE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1281</x>
+      <y>301</y>
+      <w>224</w>
+      <h>420</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+nrHelper-&gt;InstallUeDevice()</panel_attributes>
+    <additional_attributes>10.0;580.0;200.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1295</x>
+      <y>210</y>
+      <w>140</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>180.0;140.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1414</x>
+      <y>203</y>
+      <w>245</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;150.0;330.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1414</x>
+      <y>294</y>
+      <w>567</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;20.0;790.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1617</x>
+      <y>707</y>
+      <w>119</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;70.0;150.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1393</x>
+      <y>707</y>
+      <w>245</w>
+      <h>63</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>330.0;70.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1617</x>
+      <y>749</y>
+      <w>196</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>nrSlHelper-&gt;PrepareUeForSidelink()</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>581</x>
+      <y>1708</y>
+      <w>315</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>Ptr&lt;NrSlCommPreconfigResourcePoolFactory&gt; ptrFactory
+--
+SetSlTimeResources()
+SetSlSensingWindow()
+SetSlSelectionWindow()
+SetSlFreqResourcePscch()
+SetSlSubchannelSize()
+SetSlMaxNumPerReserve()
+
+bg=GREEN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>630</x>
+      <y>1512</y>
+      <w>266</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlResourcePoolNr slResourcePoolNr
+bg=GREEN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>756</x>
+      <y>1645</y>
+      <w>84</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+CreatePool()</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>630</x>
+      <y>1631</y>
+      <w>266</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlResourcePoolNr pool
+bg=GREEN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>756</x>
+      <y>1526</y>
+      <w>28</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+=</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>483</x>
+      <y>1330</y>
+      <w>329</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlResourcePoolConfigNr slresoPoolConfigNr
+--
+
+--
+id = 0
+bg=GREEN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>322</x>
+      <y>1512</y>
+      <w>266</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlResourcePoolIdNr slResourcePoolIdNr
+--
+
+--
+haveSlResourcePoolConfigNr = true
+bg=GREEN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>686</x>
+      <y>1379</y>
+      <w>329</w>
+      <h>147</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slresoPoolConfigNr.slResourcePool = slResourcePoolNr</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>392</x>
+      <y>1379</y>
+      <w>301</w>
+      <h>147</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slresoPoolConfigNr.slResourcePoolId = slResourcePoolIdNr</panel_attributes>
+    <additional_attributes>320.0;10.0;100.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>518</x>
+      <y>1204</y>
+      <w>364</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlBwpPoolConfigCommonNr slBwpPoolConfigCommonNr
+
+bg=GREEN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>637</x>
+      <y>1218</y>
+      <w>497</w>
+      <h>126</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slBwpPoolConfigCommonNr.slTxPoolSelectedNormal[slResourcePoolIdNr.id] = slresoPoolConfigNr</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>1183</y>
+      <w>329</w>
+      <h>84</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::Bwp bwp
+--
+
+--
+numerology = numerologyBwpSl
+symbolsPerSlots = 14
+rbPerRbg = 1
+bandwidth = bandwidthBandSl</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>7</x>
+      <y>1022</y>
+      <w>322</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlBwpGeneric slBwpGeneric;
+--
+
+--
+slLengthSymbols = LteRrcSap::GetSlLengthSymbolsEnum(14)
+slStartSymbol = LteRrcSap::GetSlStartSymbolEnum(0)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>175</x>
+      <y>1092</y>
+      <w>147</w>
+      <h>105</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slBwpGeneric.bwp = bwp</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>616</x>
+      <y>1022</y>
+      <w>322</w>
+      <h>84</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlBwpConfigCommonNr slBwpConfigCommonNr
+--
+
+--
+haveSlBwpGeneric = true
+haveSlBwpPoolConfigCommonNr = true
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>322</x>
+      <y>1050</y>
+      <w>308</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slBwpConfigCommonNr.slBwpGeneric = slBwpGeneric</panel_attributes>
+    <additional_attributes>420.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>637</x>
+      <y>1099</y>
+      <w>427</w>
+      <h>119</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slBwpConfigCommonNr.slBwpPoolConfigCommonNr = slBwpPoolConfigCommonNr</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1232</x>
+      <y>1183</y>
+      <w>364</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlFreqConfigCommonNr slFreConfigCommonNr
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1001</x>
+      <y>1064</y>
+      <w>315</w>
+      <h>147</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slFreConfigCommonNr.slBwpList[it] = slBwpConfigCommonNr</panel_attributes>
+    <additional_attributes>330.0;190.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1071</x>
+      <y>693</y>
+      <w>574</w>
+      <h>392</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;540.0;800.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>931</x>
+      <y>1057</y>
+      <w>161</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>210.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2142</x>
+      <y>1253</y>
+      <w>364</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlPreconfigGeneralNr slPreconfigGeneralNr
+
+bg=CYAN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2205</x>
+      <y>1407</y>
+      <w>364</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::TddUlDlConfigCommon tddUlDlConfigCommon
+--
+
+--
+tddPattern = "DL|DL|DL|F|UL|UL|UL|UL|UL|UL|"
+bg=CYAN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2317</x>
+      <y>1295</y>
+      <w>343</w>
+      <h>126</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slPreconfigGeneralNr.slTddConfig = tddUlDlConfigCommon</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1631</x>
+      <y>1589</y>
+      <w>364</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlPsschTxParameters psschParams
+--
+
+--
+slMaxTxTransNumPssch = 5
+bg=CYAN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1701</x>
+      <y>1267</y>
+      <w>364</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlUeSelectedConfig slUeSelectedPreConfig
+--
+
+--
+slProbResourceKeep = 0
+bg=CYAN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1645</x>
+      <y>1407</y>
+      <w>364</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SlPsschTxConfigList pscchTxConfigList
+
+bg=CYAN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1785</x>
+      <y>1449</y>
+      <w>315</w>
+      <h>154</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+pscchTxConfigList.slPsschTxParameters[0] = psschParams</panel_attributes>
+    <additional_attributes>20.0;10.0;10.0;200.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1862</x>
+      <y>1309</y>
+      <w>336</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slUeSelectedPreConfig.slPsschTxConfigList = pscchTxConfigList</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1869</x>
+      <y>1043</y>
+      <w>364</w>
+      <h>49</h>
+    </coordinates>
+    <panel_attributes>LteRrcSap::SidelinkPreconfigNr slPreConfigNr
+
+
+bg=CYAN</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2198</x>
+      <y>1085</y>
+      <w>357</w>
+      <h>182</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slPreConfigNr.slPreconfigGeneral = slPreconfigGeneralNr</panel_attributes>
+    <additional_attributes>10.0;10.0;170.0;240.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1897</x>
+      <y>1085</y>
+      <w>350</w>
+      <h>196</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slPreConfigNr.slUeSelectedPreConfig = slUeSelectedPreConfig</panel_attributes>
+    <additional_attributes>70.0;10.0;10.0;260.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1568</x>
+      <y>1050</y>
+      <w>336</w>
+      <h>147</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+slPreConfigNr.slPreconfigFreqInfoList[0] = slFreConfigCommonNr</panel_attributes>
+    <additional_attributes>430.0;10.0;40.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2135</x>
+      <y>889</y>
+      <w>371</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+nrSlHelper-&gt;InstallNrSlPreConfiguration(ueVoiceNetDev, slPreConfigNr)</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;220.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLObject</id>
+    <coordinates>
+      <x>2856</x>
+      <y>315</y>
+      <w>644</w>
+      <h>658</h>
+    </coordinates>
+    <panel_attributes>Static configuration
+valign=top</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2919</x>
+      <y>392</y>
+      <w>189</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>Packet
+--
+Packet::EnableChecking()
+Packet::EnablePrinting()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3157</x>
+      <y>392</y>
+      <w>189</w>
+      <h>91</h>
+    </coordinates>
+    <panel_attributes>Time
+--
+Time::SetResolution(Time::NS)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>875</x>
+      <y>805</y>
+      <w>203</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>Ptr&lt;LteSlTft&gt; tft
+
+bg=YELLOW</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>980</x>
+      <y>707</y>
+      <w>224</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+internet.Install(ueVoiceContainer)</panel_attributes>
+    <additional_attributes>10.0;20.0;300.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>784</x>
+      <y>707</y>
+      <w>203</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>InternetStackHelper internet
+
+bg=YELLOW</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>805</x>
+      <y>511</y>
+      <w>203</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>Ipv4InterfaceContainer ueIpIface
+
+bg=YELLOW</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>910</x>
+      <y>427</y>
+      <w>238</w>
+      <h>21</h>
+    </coordinates>
+    <panel_attributes>Ipv4StaticRoutingHelper ipv4RoutingHelper
+
+bg=YELLOW</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>959</x>
+      <y>518</y>
+      <w>266</w>
+      <h>84</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+epcHelper-&gt;AssignUeIpv4Address(ueVoiceNetDev)</panel_attributes>
+    <additional_attributes>300.0;100.0;70.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1162</x>
+      <y>581</y>
+      <w>91</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>110.0;180.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1162</x>
+      <y>490</y>
+      <w>756</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>1060.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1232</x>
+      <y>413</y>
+      <w>686</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>960.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1141</x>
+      <y>413</y>
+      <w>112</w>
+      <h>35</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>140.0;10.0;10.0;30.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1232</x>
+      <y>210</y>
+      <w>42</w>
+      <h>224</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;300.0;40.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1204</x>
+      <y>784</y>
+      <w>413</w>
+      <h>77</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;-
+nrSlHelper-&gt;ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft)</panel_attributes>
+    <additional_attributes>480.0;90.0;100.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1071</x>
+      <y>784</y>
+      <w>217</w>
+      <h>42</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>290.0;10.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1267</x>
+      <y>721</y>
+      <w>28</w>
+      <h>84</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>20.0;10.0;10.0;100.0</additional_attributes>
+  </element>
+</diagram>
