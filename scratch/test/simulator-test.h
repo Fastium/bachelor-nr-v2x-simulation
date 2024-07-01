@@ -103,8 +103,6 @@ using namespace ns3;
 
 #define SL_MAX_TX_TRANS_NUM_PSSCH                       5 // Maximum number of transmission for PSSCH
 
-
-
 //GLOBAL - STATIC
 #define THREE_GPP_CHANNEL_MODEL_UPDATE_PERIOD           0.0     // Period of the channel model update in milli seconds
 
