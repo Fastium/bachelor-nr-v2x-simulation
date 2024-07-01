@@ -2,6 +2,22 @@
 The goal of this simulator is to measure latency and throughput on a precise use case for a NR V2X mesh network on 
 into-train communication (between consist).
 
+## Tasks
+
+### Bugs
+- [ ] Fix the output file for db with the cmake project
+
+### Scenario 1
+- [ ] Create a simple scenario with 2 nodes
+  - [ ] learn how to transmit packets
+  - [ ] make the new instruction for the simulator
+  - [ ] learn about the model of the simulator
+  - [ ] learn how to export data from the simulator
+
+### Scenario 2
+- [ ] mesh integration
+  - [ ] 2 possibilities
+
 ## Build the simulator
 With examples :
 ```terminal
@@ -59,31 +75,9 @@ Each simulator.cc with some other .cc and .h have to be in the same subdirectory
 5. assign its stream
 6. activate the nr sidelink bearer
 
-### NR V2X stack
-
-Parameter for me :
-- size of a packet
-- number of packets sent
-- simulation time between the soft has built the environment and the last packet received
-- distance between the two consist
-- number of consist (mesh network)
-- MCS I want to use (disable the automatic mcs)
-- the channel model
-- centralFrequencyBandSl
-- bandwidth of the sidelink
-- power 
-- 
 ### Measure and save latency and throughput
-
-Regarder la class dataCollector dans le fichier dataCollector.h et dataCollector.cc
-
 ### Channel model
-
-…
-
 ### Mesh network
-
-…
 
 ## Input parameters
 
@@ -91,7 +85,17 @@ Regarder la class dataCollector dans le fichier dataCollector.h et dataCollector
 - throughput
 - error model
 - central frequency
-- 
+
+## Output parameters
+- latency
+- distance
+- node
+- packets index
+
+## Simulation scenario
+## UE-to-UE communication with distance
+In this case, the goal is to control the maximum rate of throughput, the size of the packet and the number of packets sent.
+Then we can export the real latency and throughput with the parameters.
 
 ## Versions
 
@@ -180,3 +184,5 @@ git checkout -b simulator ns-3-dev-v2x-v0.3
 ```terminal
 
 ```
+
+
