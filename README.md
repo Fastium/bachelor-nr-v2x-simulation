@@ -85,6 +85,14 @@ Regarder la class dataCollector dans le fichier dataCollector.h et dataCollector
 
 …
 
+## Input parameters
+
+- size of the data in the packet
+- throughput
+- error model
+- central frequency
+- 
+
 ## Versions
 
 Version : ns-3.40 \
