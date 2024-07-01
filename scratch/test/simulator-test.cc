@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 
     // Where we will store the output files.
     std::string simTag = "default";
-    std::string outputDir = "./outputs/";
+    std::string outputDir = "./outputs";
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simulator configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -381,32 +381,6 @@ int main(int argc, char* argv[])
     std::string exampleName = simTag + "-" + "simulator-outputs";
     SQLiteOutput db(outputDir + exampleName + ".db");
 
-    UeMacPscchTxOutputStats pscchStats;
-    pscchStats.SetDb(&db, "pscchTxUeMac");
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/SlPscchScheduling",
-                                  MakeBoundCallback(&Utils::NotifySlPscchScheduling, &pscchStats));
-
-    UeMacPsschTxOutputStats psschStats;
-    psschStats.SetDb(&db, "psschTxUeMac");
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/SlPsschScheduling",
-                                  MakeBoundCallback(&Utils::NotifySlPsschScheduling, &psschStats));
-
-    UePhyPscchRxOutputStats pscchPhyStats;
-    pscchPhyStats.SetDb(&db, "pscchRxUePhy");
-    Config::ConnectWithoutContext(
-            "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/"
-            "NrSpectrumPhyList/*/RxPscchTraceUe",
-            MakeBoundCallback(&Utils::NotifySlPscchRx, &pscchPhyStats));
-
-    UePhyPsschRxOutputStats psschPhyStats;
-    psschPhyStats.SetDb(&db, "psschRxUePhy");
-    Config::ConnectWithoutContext(
-            "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/"
-            "NrSpectrumPhyList/*/RxPsschTraceUe",
-            MakeBoundCallback(&Utils::NotifySlPsschRx, &psschPhyStats));
-
     UeToUePktTxRxOutputStats pktStats;
     pktStats.SetDb(&db, "pktTxRx");
 
@@ -465,11 +439,6 @@ int main(int argc, char* argv[])
      * dump the data store towards the end of the simulation in to a database.
      */
     pktStats.EmptyCache();
-    pscchStats.EmptyCache();
-    psschStats.EmptyCache();
-    pscchPhyStats.EmptyCache();
-    psschPhyStats.EmptyCache();
-
 
     Simulator::Destroy();
 
