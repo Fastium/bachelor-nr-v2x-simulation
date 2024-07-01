@@ -42,7 +42,7 @@ using namespace ns3;
 
 // Don't change the following parameters
 #define NUM_CC_PER_BAND                             1       // Number of component carriers per band
-#define BANDWIDTH_PART_INFO_SCENARIO                BandwidthPartInfo::Scenario::UMi_StreetCanyon   // Scenario of the bandwidth part info
+
 
 
 #endif //NS3_SIMULATOR_H
