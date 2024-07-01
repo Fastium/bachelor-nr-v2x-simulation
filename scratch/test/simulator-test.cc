@@ -77,13 +77,14 @@ int main(int argc, char* argv[])
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //User Equipment
     NodeContainer ueVoiceContainer;
-    ueVoiceContainer.Create(NUM_UE);
+    uint16_t ueNum = NUM_UE;
+    ueVoiceContainer.Create(ueNum);
 
     // Static position of the UEs
     MobilityHelper mobility;
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
-    for (uint16_t i = 0; i < NUM_UE; i++)
+    for (uint16_t i = 0; i < ueNum; i++)
     {
         positionAllocUe->Add(Vector(interUeDistance * i, 0.0, 1.5));
     }
@@ -229,14 +230,12 @@ int main(int argc, char* argv[])
     LteRrcSap::SlResourcePoolNr pool = ptrFactory->CreatePool();
     slResourcePoolNr = pool;
 
+    LteRrcSap::SlResourcePoolConfigNr slresoPoolConfigNr;
+    slresoPoolConfigNr.haveSlResourcePoolConfigNr = true;
+
     uint16_t poolId = 0;
     LteRrcSap::SlResourcePoolIdNr slResourcePoolIdNr;
     slResourcePoolIdNr.id = poolId;
-
-    LteRrcSap::SlResourcePoolConfigNr slresoPoolConfigNr;
-    slresoPoolConfigNr.haveSlResourcePoolConfigNr = SL_RESOURCE_POOL_CONFIG_NR;
-
-
     slresoPoolConfigNr.slResourcePoolId = slResourcePoolIdNr;
     slresoPoolConfigNr.slResourcePool = slResourcePoolNr;
 
@@ -308,19 +307,17 @@ int main(int argc, char* argv[])
     InternetStackHelper internet;
     internet.Install(ueVoiceContainer);
     stream += internet.AssignStreams(ueVoiceContainer, stream);
-    uint32_t dstL2Id = DST_L2_ID;
-    Ipv4Address groupAddress4(IP_GROUP_ADDRESS); // use multicast address as destination
+    uint32_t dstL2Id = 255;
+    Ipv4Address groupAddress4("225.0.0.0"); // use multicast address as destination
     Address remoteAddress;
     Address localAddress;
-    uint16_t port = PORT;
-    // each node need a traffic flow template (TFT) to manage like a filter the incoming packets and
-    // improve the efficiency with the ip address and the port...
+    uint16_t port = 8000;
     Ptr<LteSlTft> tft;
 
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(ueVoiceNetDev);
 
-    // set the default gateway for the UE --> usefully to count the packet and the bits sent and received
+    // set the default gateway for the UE
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
     for (uint32_t u = 0; u < ueVoiceContainer.GetN(); ++u)
     {
