@@ -121,9 +121,11 @@ public:
      */
     static void ComputePir(Ptr<const Packet> packet, const Address&);
 
-    static void packetTx(const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
+    static void packetClientTx(const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
 
-    static void packetRx(const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
+    static void packetServerRx(const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
+
+    static void packetClientRx(const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
 
 private:
     Utils() = default;

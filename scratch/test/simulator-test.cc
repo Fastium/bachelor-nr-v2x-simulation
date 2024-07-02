@@ -312,19 +312,12 @@ int main(int argc, char* argv[])
     stream += nrSlHelper->AssignStreams(ueVoiceNetDev, stream);
     stream += internet.AssignStreams(ueVoiceContainer, stream);
 
-    Ipv4Address groupAddress("225.0.0.0"); // use multicast address as destination
-    Ipv4Address serverAddress("10.0.0.1");
-    Address remoteAddress;
-    Address localAddress;
+
     uint16_t port = 8000;
     Ptr<LteSlTft> tft;
 
-
-
-
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(ueVoiceNetDev);
-
     // set the default gateway for the UE
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
     for (uint32_t u = 0; u < ueVoiceContainer.GetN(); ++u)
@@ -333,12 +326,21 @@ int main(int argc, char* argv[])
         // Set the default gateway for the UE
         Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+
     }
 
-    remoteAddress = InetSocketAddress(serverAddress, port);
-    localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
+    Ipv4Address serverAddr = ueVoiceContainer.Get(serverId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+//    Ipv4Address clientAddr = ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+//    Ipv4Address defaultGateway = epcHelper->GetUeDefaultGatewayAddress();
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, LteSlTft::CommType::GroupCast, groupAddress, 255);
+    cout << "Default gateway : " << epcHelper->GetUeDefaultGatewayAddress() << endl;
+    cout << "Server address  : " << ueVoiceContainer.Get(serverId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl ;
+    cout << "Client address  : " << ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl ;
+
+    Address remoteAddress = InetSocketAddress(serverAddr, port);
+//    Address localAddress = InetSocketAddress(clientAddr, port);
+
+    tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, LteSlTft::CommType::GroupCast, serverAddr, 255);
 
 
     // Set Sidelink bearers
@@ -347,15 +349,13 @@ int main(int argc, char* argv[])
 // Application configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-    std::cout << "Data rate " << DataRate(dataRateBeString) << std::endl;
+    std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
 
     // Output app start, stop and duration
     double realAppStart = finalSlBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
     double appStopTime = (finalSimTime).GetSeconds();
-    std::cout << "App start time " << realAppStart << " sec" << std::endl;
-    std::cout << "App stop time " << appStopTime << " sec" << std::endl;
-
-
+    std::cout << "App start time : " << realAppStart << " sec" << std::endl;
+    std::cout << "App stop time : " << appStopTime << " sec" << std::endl;
 
     //Server
     UdpServerHelper echoServer(port);
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
     serverApps.Start(Seconds(2.0));
 
     // Client
-    UdpClientHelper echoClient(groupAddress, port);
+    UdpClientHelper echoClient(remoteAddress, port);
     echoClient.SetAttribute("MaxPackets", UintegerValue(1));
     double interval = udpPacketSizeBe / (DataRate(dataRateBeString).GetBitRate());
     echoClient.SetAttribute("Interval", TimeValue(Seconds(interval)));
@@ -377,12 +377,12 @@ int main(int argc, char* argv[])
     std::ostringstream path;
     path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId()
          << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetTx));
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
     path.str("");
 
     path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId()
          << "/ApplicationList/0/$ns3::UdpServer/RxWithAddresses";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetRx));
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
 
     Simulator::Stop(finalSimTime);
     Simulator::Run();
