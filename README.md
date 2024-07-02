@@ -5,7 +5,7 @@ into-train communication (between consist).
 ## Tasks
 
 ### Bugs
-- [ ] Fix the output file for db with the cmake project
+- [ ] Fix the output file for db with the cmake project (optional)
 
 ### Scenario 1
 - [ ] Create a simple scenario with 2 nodes
