@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 
     // Where we will store the output files.
     std::string simTag = "default";
-    std::string outputDir = "./outputs/";
+    std::string outputDir = "./";
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simulator configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,20 +299,28 @@ int main(int argc, char* argv[])
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // IP configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Stream configuration
+    InternetStackHelper internet;
+
+    uint8_t serverId = 1;
+    uint8_t clientId = 0;
+
+    internet.Install(ueVoiceContainer);
+
+    // Stream configuration to randomize the models
     int64_t stream = 1;
     stream += nrHelper->AssignStreams(ueVoiceNetDev, stream);
     stream += nrSlHelper->AssignStreams(ueVoiceNetDev, stream);
-
-    InternetStackHelper internet;
-    internet.Install(ueVoiceContainer);
     stream += internet.AssignStreams(ueVoiceContainer, stream);
-    uint32_t dstL2Id = 255;
-    Ipv4Address groupAddress4("225.0.0.0"); // use multicast address as destination
+
+    Ipv4Address groupAddress("225.0.0.0"); // use multicast address as destination
+    Ipv4Address serverAddress("10.0.0.1");
     Address remoteAddress;
     Address localAddress;
     uint16_t port = 8000;
     Ptr<LteSlTft> tft;
+
+
+
 
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(ueVoiceNetDev);
@@ -326,123 +334,66 @@ int main(int argc, char* argv[])
         Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
-    remoteAddress = InetSocketAddress(groupAddress4, port);
+
+    remoteAddress = InetSocketAddress(serverAddress, port);
     localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
-    tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, LteSlTft::CommType::GroupCast, groupAddress4, dstL2Id);
+
+    tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, LteSlTft::CommType::GroupCast, groupAddress, 255);
+
+
     // Set Sidelink bearers
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    OnOffHelper sidelinkClient("ns3::UdpSocketFactory", remoteAddress);
-    sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
     std::cout << "Data rate " << DataRate(dataRateBeString) << std::endl;
-    sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
-
-    ApplicationContainer clientApps = sidelinkClient.Install(ueVoiceContainer.Get(0));
-    // onoff application will send the first packet at :
-    // finalSlBearersActivationTime + ((Pkt size in bits) / (Data rate in bits per sec))
-    clientApps.Start(finalSlBearersActivationTime);
-    clientApps.Stop(finalSimTime);
 
     // Output app start, stop and duration
-    double realAppStart =
-            finalSlBearersActivationTime.GetSeconds() +
-            ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
+    double realAppStart = finalSlBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
     double appStopTime = (finalSimTime).GetSeconds();
-
     std::cout << "App start time " << realAppStart << " sec" << std::endl;
     std::cout << "App stop time " << appStopTime << " sec" << std::endl;
 
-    ApplicationContainer serverApps;
-    PacketSinkHelper sidelinkSink("ns3::UdpSocketFactory", localAddress);
-    sidelinkSink.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    serverApps = sidelinkSink.Install(ueVoiceContainer.Get(ueVoiceContainer.GetN() - 1));
+
+
+    //Server
+    UdpServerHelper echoServer(port);
+
+    ApplicationContainer serverApps = echoServer.Install(ueVoiceContainer.Get(serverId));
     serverApps.Start(Seconds(2.0));
 
+    // Client
+    UdpClientHelper echoClient(groupAddress, port);
+    echoClient.SetAttribute("MaxPackets", UintegerValue(1));
+    double interval = udpPacketSizeBe / (DataRate(dataRateBeString).GetBitRate());
+    echoClient.SetAttribute("Interval", TimeValue(Seconds(interval)));
+    echoClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
 
-    // Trace receptions; use the following to be robust to node ID changes
+    ApplicationContainer clientApps = echoClient.Install(ueVoiceContainer.Get(clientId));
+    clientApps.Start(finalSlBearersActivationTime);
+    clientApps.Stop(finalSimTime);
+
     std::ostringstream path;
-    path << "/NodeList/" << ueVoiceContainer.Get(1)->GetId()
-         << "/ApplicationList/0/$ns3::PacketSink/Rx";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::ReceivePacket));
+    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId()
+         << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetTx));
     path.str("");
 
-    path << "/NodeList/" << ueVoiceContainer.Get(1)->GetId()
-         << "/ApplicationList/0/$ns3::PacketSink/Rx";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::ComputePir));
-    path.str("");
-
-    path << "/NodeList/" << ueVoiceContainer.Get(0)->GetId()
-         << "/ApplicationList/0/$ns3::OnOffApplication/Tx";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::TransmitPacket));
-    path.str("");
-
-    // Datebase setup
-    std::string exampleName = simTag + "-" + "simulator-outputs";
-    SQLiteOutput db(outputDir + exampleName + ".db");
-
-    UeToUePktTxRxOutputStats pktStats;
-    pktStats.SetDb(&db, "pktTxRx");
-
-    // Set Tx traces
-    for (uint16_t ac = 0; ac < clientApps.GetN(); ac++)
-    {
-        Ipv4Address localAddrs = clientApps.Get(ac)
-                ->GetNode()
-                ->GetObject<Ipv4L3Protocol>()
-                ->GetAddress(1, 0)
-                .GetLocal();
-        std::cout << "Tx address: " << localAddrs << std::endl;
-        clientApps.Get(ac)->TraceConnect("TxWithSeqTsSize",
-                                         "tx",
-                                         MakeBoundCallback(&Utils::UePacketTraceDb,
-                                                           &pktStats,
-                                                           ueVoiceContainer.Get(0),
-                                                           localAddrs));
-    }
-
-    // Set Rx traces
-    for (uint16_t ac = 0; ac < serverApps.GetN(); ac++)
-    {
-        Ipv4Address localAddrs = serverApps.Get(ac)
-                ->GetNode()
-                ->GetObject<Ipv4L3Protocol>()
-                ->GetAddress(1, 0)
-                .GetLocal();
-        std::cout << "Rx address: " << localAddrs << std::endl;
-        serverApps.Get(ac)->TraceConnect("RxWithSeqTsSize",
-                                         "rx",
-                                         MakeBoundCallback(&Utils::UePacketTraceDb,
-                                                           &pktStats,
-                                                           ueVoiceContainer.Get(1),
-                                                           localAddrs));
-    }
+    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId()
+         << "/ApplicationList/0/$ns3::UdpServer/RxWithAddresses";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetRx));
 
     Simulator::Stop(finalSimTime);
     Simulator::Run();
-
-    std::cout << "Total Tx bits = " << Utils::txByteCounter * 8 << std::endl;
-    std::cout << "Total Tx packets = " << Utils::txPktCounter << std::endl;
-
-    std::cout << "Total Rx bits = " << Utils::rxByteCounter * 8 << std::endl;
-    std::cout << "Total Rx packets = " << Utils::rxPktCounter << std::endl;
-
-    std::cout << "Avrg thput = "
-              << (Utils::rxByteCounter * 8) / (finalSimTime - Seconds(realAppStart)).GetSeconds() / 1000.0
-              << " kbps" << std::endl;
-
-    std::cout << "Average Packet Inter-Reception (PIR) " << Utils::pir.GetSeconds() / Utils::pirCounter << " sec"
-              << std::endl;
-
     /*
      * VERY IMPORTANT: Do not forget to empty the database cache, which would
      * dump the data store towards the end of the simulation in to a database.
      */
-    pktStats.EmptyCache();
+
 
     Simulator::Destroy();
 
+    std::cout << "Simulation completed" << endl;
     return 0;
 }

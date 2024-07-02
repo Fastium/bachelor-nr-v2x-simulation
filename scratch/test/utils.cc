@@ -81,3 +81,18 @@ void Utils::ComputePir(Ptr<const Packet> packet, const Address&)
     lastPktRxTime = Simulator::Now();
     pirCounter++;
 }
+
+void Utils::packetTx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
+{
+    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+    std::cout << "Packet Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+}
+
+void Utils::packetRx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
+{
+    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+    std::cout << "Packet Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+}
+
