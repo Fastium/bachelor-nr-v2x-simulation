@@ -464,7 +464,6 @@ main(int argc, char* argv[])
     bool logging = false;
 
     // Traffic parameters (that we will use inside this script:)
-    bool useIPv6 = false; // default IPV4
     uint32_t udpPacketSizeBe = 200;
     double dataRateBe = 16; // 16 kilobits per second
 
@@ -528,7 +527,6 @@ main(int argc, char* argv[])
                  "with odd number of UEs per lane, which makes the middle vehicle"
                  "in each lane a transmitter",
                  enableOneTxPerLane);
-    cmd.AddValue("useIPv6", "Use IPv6 instead of IPv4", useIPv6);
     cmd.AddValue("packetSizeBe",
                  "packet size in bytes to be used by best effort traffic",
                  udpPacketSizeBe);
@@ -1001,75 +999,44 @@ main(int argc, char* argv[])
     stream += internet.AssignStreams(allSlUesContainer, stream);
     uint32_t dstL2Id = 255;
     Ipv4Address groupAddress4("225.0.0.0"); // use multicast address as destination
-    Ipv6Address groupAddress6("ff0e::1");   // use multicast address as destination
+    Ipv4Address client("7.0.0.4"); // use multicast address as destination
+    Ipv4Address server("7.0.0.6"); // use multicast address as destination
     Address remoteAddress;
     Address localAddress;
     uint16_t port = 8000;
     Ptr<LteSlTft> tft;
-    if (!useIPv6)
+
+    Ipv4InterfaceContainer ueIpIface;
+    ueIpIface = epcHelper->AssignUeIpv4Address(allSlUesNetDeviceContainer);
+
+    // set the default gateway for the UE
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+    for (uint32_t u = 0; u < allSlUesContainer.GetN(); ++u)
     {
-        Ipv4InterfaceContainer ueIpIface;
-        ueIpIface = epcHelper->AssignUeIpv4Address(allSlUesNetDeviceContainer);
-
-        // set the default gateway for the UE
-        Ipv4StaticRoutingHelper ipv4RoutingHelper;
-        for (uint32_t u = 0; u < allSlUesContainer.GetN(); ++u)
-        {
-            Ptr<Node> ueNode = allSlUesContainer.Get(u);
-            // Set the default gateway for the UE
-            Ptr<Ipv4StaticRouting> ueStaticRouting =
-                ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-            ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
-        }
-        remoteAddress = InetSocketAddress(groupAddress4, port);
-        localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
-
-        tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT,
-                               LteSlTft::CommType::GroupCast,
-                               groupAddress4,
-                               dstL2Id);
-        // Set Sidelink bearers
-        nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, txSlUesNetDevice, tft);
-
-        tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE,
-                               LteSlTft::CommType::GroupCast,
-                               groupAddress4,
-                               dstL2Id);
-        // Set Sidelink bearers
-        nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, rxSlUesNetDevice, tft);
+        Ptr<Node> ueNode = allSlUesContainer.Get(u);
+        // Set the default gateway for the UE
+        Ptr<Ipv4StaticRouting> ueStaticRouting =
+            ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
+        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
     }
-    else
-    {
-        Ipv6InterfaceContainer ueIpIface;
-        ueIpIface = epcHelper->AssignUeIpv6Address(allSlUesNetDeviceContainer);
+    remoteAddress = InetSocketAddress(groupAddress4, port);
+    localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
 
-        // set the default gateway for the UE
-        Ipv6StaticRoutingHelper ipv6RoutingHelper;
-        for (uint32_t u = 0; u < allSlUesContainer.GetN(); ++u)
-        {
-            Ptr<Node> ueNode = allSlUesContainer.Get(u);
-            // Set the default gateway for the UE
-            Ptr<Ipv6StaticRouting> ueStaticRouting =
-                ipv6RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv6>());
-            ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress6(), 1);
-        }
-        remoteAddress = Inet6SocketAddress(groupAddress6, port);
-        localAddress = Inet6SocketAddress(Ipv6Address::GetAny(), port);
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT,
+                           LteSlTft::CommType::GroupCast,
+                           groupAddress4,
+                           dstL2Id);
+    // Set Sidelink bearers
+    nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, txSlUesNetDevice, tft);
 
-        tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT,
-                               LteSlTft::CommType::GroupCast,
-                               groupAddress4,
-                               dstL2Id);
-        // Set Sidelink bearers for transmitting UEs
-        nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, txSlUesNetDevice, tft);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE,
+                           LteSlTft::CommType::GroupCast,
+                           groupAddress4,
+                           dstL2Id);
+    // Set Sidelink bearers
+    nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, rxSlUesNetDevice, tft);
 
-        tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE,
-                               LteSlTft::CommType::GroupCast,
-                               groupAddress4,
-                               dstL2Id);
-        // Set Sidelink bearers for receiving UEs
-        nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, rxSlUesNetDevice, tft);
-    }
+
 
     /*
      * Configure the applications:
@@ -1187,81 +1154,39 @@ main(int argc, char* argv[])
     UeToUePktTxRxOutputStats pktStats;
     pktStats.SetDb(&db, "pktTxRx");
 
-    if (!useIPv6)
-    {
-        // Set Tx traces
-        for (uint16_t ac = 0; ac < clientApps.GetN(); ac++)
-        {
-            Ipv4Address localAddrs = clientApps.Get(ac)
-                                         ->GetNode()
-                                         ->GetObject<Ipv4L3Protocol>()
-                                         ->GetAddress(1, 0)
-                                         .GetLocal();
-            std::cout << "Tx address: " << localAddrs << std::endl;
-            clientApps.Get(ac)->TraceConnect("TxWithSeqTsSize",
-                                             "tx",
-                                             MakeBoundCallback(&UePacketTraceDb,
-                                                               &pktStats,
-                                                               clientApps.Get(ac)->GetNode(),
-                                                               localAddrs));
-        }
 
-        // Set Rx traces
-        for (uint16_t ac = 0; ac < serverApps.GetN(); ac++)
-        {
-            Ipv4Address localAddrs = serverApps.Get(ac)
-                                         ->GetNode()
-                                         ->GetObject<Ipv4L3Protocol>()
-                                         ->GetAddress(1, 0)
-                                         .GetLocal();
-            std::cout << "Rx address: " << localAddrs << std::endl;
-            serverApps.Get(ac)->TraceConnect("RxWithSeqTsSize",
-                                             "rx",
-                                             MakeBoundCallback(&UePacketTraceDb,
-                                                               &pktStats,
-                                                               serverApps.Get(ac)->GetNode(),
-                                                               localAddrs));
-        }
+    // Set Tx traces
+    for (uint16_t ac = 0; ac < clientApps.GetN(); ac++)
+    {
+        Ipv4Address localAddrs = clientApps.Get(ac)
+                                     ->GetNode()
+                                     ->GetObject<Ipv4L3Protocol>()
+                                     ->GetAddress(1, 0)
+                                     .GetLocal();
+        std::cout << "Tx address: " << localAddrs << std::endl;
+        clientApps.Get(ac)->TraceConnect("TxWithSeqTsSize",
+                                         "tx",
+                                         MakeBoundCallback(&UePacketTraceDb,
+                                                           &pktStats,
+                                                           clientApps.Get(ac)->GetNode(),
+                                                           localAddrs));
     }
-    else
-    {
-        // Set Tx traces
-        for (uint16_t ac = 0; ac < clientApps.GetN(); ac++)
-        {
-            clientApps.Get(ac)->GetNode()->GetObject<Ipv6L3Protocol>()->AddMulticastAddress(
-                groupAddress6);
-            Ipv6Address localAddrs = clientApps.Get(ac)
-                                         ->GetNode()
-                                         ->GetObject<Ipv6L3Protocol>()
-                                         ->GetAddress(1, 1)
-                                         .GetAddress();
-            std::cout << "Tx address: " << localAddrs << std::endl;
-            clientApps.Get(ac)->TraceConnect("TxWithSeqTsSize",
-                                             "tx",
-                                             MakeBoundCallback(&UePacketTraceDb,
-                                                               &pktStats,
-                                                               clientApps.Get(ac)->GetNode(),
-                                                               localAddrs));
-        }
 
-        // Set Rx traces
-        for (uint16_t ac = 0; ac < serverApps.GetN(); ac++)
-        {
-            serverApps.Get(ac)->GetNode()->GetObject<Ipv6L3Protocol>()->AddMulticastAddress(
-                groupAddress6);
-            Ipv6Address localAddrs = serverApps.Get(ac)
-                                         ->GetNode()
-                                         ->GetObject<Ipv6L3Protocol>()
-                                         ->GetAddress(1, 1)
-                                         .GetAddress();
-            std::cout << "Rx address: " << localAddrs << std::endl;
-            serverApps.Get(ac)->TraceConnect("RxWithSeqTsSize",
-                                             "rx",
-                                             MakeBoundCallback(&UePacketTraceDb,
-                                                               &pktStats,
-                                                               serverApps.Get(ac)->GetNode(),
-                                                               localAddrs));
-        }
+    // Set Rx traces
+    for (uint16_t ac = 0; ac < serverApps.GetN(); ac++)
+    {
+        Ipv4Address localAddrs = serverApps.Get(ac)
+                                     ->GetNode()
+                                     ->GetObject<Ipv4L3Protocol>()
+                                     ->GetAddress(1, 0)
+                                     .GetLocal();
+        std::cout << "Rx address: " << localAddrs << std::endl;
+        serverApps.Get(ac)->TraceConnect("RxWithSeqTsSize",
+                                         "rx",
+                                         MakeBoundCallback(&UePacketTraceDb,
+                                                           &pktStats,
+                                                           serverApps.Get(ac)->GetNode(),
+                                                           localAddrs));
     }
 
     V2xKpi v2xKpi;
