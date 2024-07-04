@@ -25,11 +25,21 @@ NS_LOG_COMPONENT_DEFINE("ScratchSimulator"); // enable logging on terminal
 int main(int argc, char* argv[])
 {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Project parameters
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//    LogComponentEnable("ScratchSimulator", LOG_LEVEL_ALL);
+//    LogComponentEnable("NrSlHelper", LOG_LEVEL_ALL);
+//    LogComponentEnable("LteUeRrc", LOG_LEVEL_ALL);
+
+    // Where we will store the output files.
+    std::string simTag = "default";
+    std::string outputDir = "./";
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simulator parameters
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Scenario parameters (that we will use inside this script):
     uint16_t interUeDistance = INTER_UE_DISTANCE; // meters
-    //bool logging = false;
 
     // Traffic parameters (that we will use inside this script:)
     //bool useIPv6 = false; // default IPV4
@@ -48,9 +58,6 @@ int main(int argc, char* argv[])
     uint16_t bandwidthBandSl = BANDWIDTH_BAND_SL;         // Multiple of 100 KHz; 400 = 40 MHz
     double txPower = NR_H_PHY_TxPower;                    // dBm
 
-    // Where we will store the output files.
-    std::string simTag = "default";
-    std::string outputDir = "./";
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simulator configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,6 +311,17 @@ int main(int argc, char* argv[])
     uint8_t serverId = 1;
     uint8_t clientId = 0;
 
+    // set the receiver and the transmitter
+    NodeContainer txSlUes;
+    NodeContainer rxSlUes;
+    NetDeviceContainer txSlUesNetDevice;
+    NetDeviceContainer rxSlUesNetDevice;
+
+    txSlUes.Add(ueVoiceContainer.Get(clientId));
+    rxSlUes.Add(ueVoiceContainer.Get(serverId));
+    txSlUesNetDevice.Add(ueVoiceNetDev.Get(clientId));
+    rxSlUesNetDevice.Add(ueVoiceNetDev.Get(serverId));
+
     internet.Install(ueVoiceContainer);
 
     // Stream configuration to randomize the models
@@ -312,37 +330,40 @@ int main(int argc, char* argv[])
     stream += nrSlHelper->AssignStreams(ueVoiceNetDev, stream);
     stream += internet.AssignStreams(ueVoiceContainer, stream);
 
-
     uint16_t port = 8000;
     Ptr<LteSlTft> tft;
 
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(ueVoiceNetDev);
-    // set the default gateway for the UE
-    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-    for (uint32_t u = 0; u < ueVoiceContainer.GetN(); ++u)
-    {
-        Ptr<Node> ueNode = ueVoiceContainer.Get(u);
-        // Set the default gateway for the UE
-        Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
 
-    }
+
+    // set the default gateway for the UE why I need to set the default gateway for the UE
+//    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+//    for (uint32_t u = 0; u < ueVoiceContainer.GetN(); ++u)
+//    {
+//        Ptr<Node> ueNode = ueVoiceContainer.Get(u);
+//        // Set the default gateway for the UE
+//        Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
+//        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+//
+//    }
 
     Ipv4Address serverAddr = ueVoiceContainer.Get(serverId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
-//    Ipv4Address clientAddr = ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+    Ipv4Address clientAddr = ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 //    Ipv4Address defaultGateway = epcHelper->GetUeDefaultGatewayAddress();
 
     cout << "Default gateway : " << epcHelper->GetUeDefaultGatewayAddress() << endl;
     cout << "Server address  : " << ueVoiceContainer.Get(serverId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl ;
     cout << "Client address  : " << ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl ;
 
-    Address remoteAddress = InetSocketAddress(serverAddr, port);
-//    Address localAddress = InetSocketAddress(clientAddr, port);
+    InetSocketAddress remoteAddress = InetSocketAddress(serverAddr, port); // put an and point to the server
+    InetSocketAddress localAddress = InetSocketAddress(clientAddr, port); // put an end point to the client
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::BIDIRECTIONAL, LteSlTft::CommType::GroupCast, serverAddr, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, serverAddr, 255);
+    // Set Sidelink bearers
+    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
 
-
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, serverAddr, 255);
     // Set Sidelink bearers
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,36 +373,66 @@ int main(int argc, char* argv[])
     std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
 
     // Output app start, stop and duration
-    double realAppStart = finalSlBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
-    double appStopTime = (finalSimTime).GetSeconds();
-    std::cout << "App start time : " << realAppStart << " sec" << std::endl;
-    std::cout << "App stop time : " << appStopTime << " sec" << std::endl;
-
-    //Server
-    UdpServerHelper echoServer(port);
-
-    ApplicationContainer serverApps = echoServer.Install(ueVoiceContainer.Get(serverId));
-    serverApps.Start(Seconds(2.0));
+//    double realAppStart = finalSlBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
+//    double appStopTime = (finalSimTime).GetSeconds();
+//    std::cout << "App start time : " << realAppStart << " sec" << std::endl;
+//    std::cout << "App stop time : " << appStopTime << " sec" << std::endl;
 
     // Client
-    UdpClientHelper echoClient(remoteAddress, port);
-    echoClient.SetAttribute("MaxPackets", UintegerValue(1));
-    double interval = udpPacketSizeBe / (DataRate(dataRateBeString).GetBitRate());
-    echoClient.SetAttribute("Interval", TimeValue(Seconds(interval)));
-    echoClient.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe));
+    OnOffHelper sidelinkClient("ns3::UdpSocketFactory", remoteAddress);
+    sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+    sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
 
-    ApplicationContainer clientApps = echoClient.Install(ueVoiceContainer.Get(clientId));
-    clientApps.Start(finalSlBearersActivationTime);
-    clientApps.Stop(finalSimTime);
+    ApplicationContainer clientApps;
+
+    double realAppStart = 0.0;
+    double realAppStopTime = 0.0;
+    double txAppDuration = 0.0;
+
+    for (uint16_t i = 0; i < txSlUes.GetN(); i++)
+    {
+        clientApps.Add(sidelinkClient.Install(txSlUes.Get(i)));
+        double jitter = 0; // can depend of a random variable
+        Time appStart = slBearersActivationTime + Seconds(jitter);
+        clientApps.Get(i)->SetStartTime(appStart);
+        // onoff application will send the first packet at :
+        // slBearersActivationTime + random jitter + ((Pkt size in bits) / (Data rate in bits per
+        // sec))
+        realAppStart = slBearersActivationTime.GetSeconds() + jitter +
+                       ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
+        realAppStopTime = realAppStart + simTime.GetSeconds();
+        clientApps.Get(i)->SetStopTime(Seconds(realAppStopTime));
+        txAppDuration = realAppStopTime - realAppStart;
+
+        // Output app start, stop and duration
+        std::cout << "Tx App " << i + 1 << " start time " << std::fixed << std::setprecision(5)
+                  << realAppStart << " sec" << std::endl;
+        std::cout << "Tx App " << i + 1 << " stop time " << realAppStopTime << " sec" << std::endl;
+        std::cout << "Tx App duration " << std::defaultfloat << txAppDuration << " sec"
+                  << std::endl;
+    }
+
+    //server
+    ApplicationContainer serverApps;
+    PacketSinkHelper sidelinkSink("ns3::UdpSocketFactory", localAddress);
+    sidelinkSink.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+    for (uint16_t i = 0; i < rxSlUes.GetN(); i++)
+    {
+        serverApps.Add(sidelinkSink.Install(rxSlUes.Get(i)));
+        serverApps.Start(Seconds(0.0));
+    }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Trace configuration
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     std::ostringstream path;
-    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId()
-         << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
+    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
     Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+
     path.str("");
 
-    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId()
-         << "/ApplicationList/0/$ns3::UdpServer/RxWithAddresses";
+    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
     Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
 
     Simulator::Stop(finalSimTime);

@@ -5,18 +5,18 @@ into-train communication (between consist).
 ## Tasks
 
 ### Bugs
-- [ ] Fix the output file for db with the cmake project (optional)
+Fix the output file for db with the cmake project (optional)
 
 ### Scenario 1
-- [ ] Create a simple scenario with 2 nodes
-  - [ ] learn how to transmit packets
-  - [ ] make the new instruction for the simulator
-  - [ ] learn about the model of the simulator
-  - [ ] learn how to export data from the simulator
+- Create a simple scenario with 2 nodes
+  - learn how to transmit packets
+  - make the new instruction for the simulator 
+  - learn about the model of the simulator
+  - learn how to export data from the simulator
 
 ### Scenario 2
-- [ ] mesh integration
-  - [ ] 2 possibilities
+- mesh integration
+  - 2 possibilities
 
 ## Build the simulator
 With examples :

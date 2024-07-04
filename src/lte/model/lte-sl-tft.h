@@ -76,7 +76,7 @@ class LteSlTft : public SimpleRefCount<LteSlTft>
     {
         Broadcast = 1,
         GroupCast = 2,
-        UniCast = 3,
+        Unicast = 3,
         INVALID = 4
     };
 
