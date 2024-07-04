@@ -455,10 +455,10 @@ main(int argc, char* argv[])
      * Variables that represent the parameters we will accept as input by the
      * command line. Each of them is initialized with a default value.
      */
-    uint16_t numVehiclesPerLane = 5;
-    uint16_t numLanes = 3;
+    uint16_t numVehiclesPerLane = 3;
+    uint16_t numLanes = 2;
     uint16_t interVehicleDist = 20; // meters
-    uint16_t interLaneDist = 4;     // meters
+    uint16_t interLaneDist = 20;     // meters
     double speed = 38.88889;        // meter per second, default 140 km/h
     bool enableOneTxPerLane = true;
     bool logging = false;
@@ -468,7 +468,7 @@ main(int argc, char* argv[])
     double dataRateBe = 16; // 16 kilobits per second
 
     // Simulation parameters.
-    Time simTime = Seconds(10);
+    Time simTime = Seconds(1);
     // Sidelink bearers activation time
     Time slBearersActivationTime = Seconds(2.0);
 
@@ -614,7 +614,10 @@ main(int argc, char* argv[])
      * Usually, the environment variable way is preferred, as it is more customizable,
      * and more expressive.
      */
-    if (logging)
+
+    LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
+    LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
+    if (false)
     {
         LogLevel logLevel =
             (LogLevel)(LOG_PREFIX_FUNC | LOG_PREFIX_TIME | LOG_PREFIX_NODE | LOG_LEVEL_ALL);
@@ -997,10 +1000,8 @@ main(int argc, char* argv[])
     InternetStackHelper internet;
     internet.Install(allSlUesContainer);
     stream += internet.AssignStreams(allSlUesContainer, stream);
-    uint32_t dstL2Id = 255;
+
     Ipv4Address groupAddress4("225.0.0.0"); // use multicast address as destination
-    Ipv4Address client("7.0.0.4"); // use multicast address as destination
-    Ipv4Address server("7.0.0.6"); // use multicast address as destination
     Address remoteAddress;
     Address localAddress;
     uint16_t port = 8000;
@@ -1018,22 +1019,15 @@ main(int argc, char* argv[])
         Ptr<Ipv4StaticRouting> ueStaticRouting =
             ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
         ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+
     }
     remoteAddress = InetSocketAddress(groupAddress4, port);
     localAddress = InetSocketAddress(Ipv4Address::GetAny(), port);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT,
-                           LteSlTft::CommType::GroupCast,
-                           groupAddress4,
-                           dstL2Id);
-    // Set Sidelink bearers
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::GroupCast, groupAddress4, 255);
     nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, txSlUesNetDevice, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE,
-                           LteSlTft::CommType::GroupCast,
-                           groupAddress4,
-                           dstL2Id);
-    // Set Sidelink bearers
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::GroupCast, groupAddress4, 255);
     nrSlHelper->ActivateNrSlBearer(slBearersActivationTime, rxSlUesNetDevice, tft);
 
 
@@ -1057,22 +1051,24 @@ main(int argc, char* argv[])
     std::cout << "Data rate " << DataRate(dataRateBeString) << std::endl;
     sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
 
-    ApplicationContainer clientApps;
     double realAppStart = 0.0;
     double realAppStopTime = 0.0;
     double txAppDuration = 0.0;
 
-    for (uint16_t i = 0; i < txSlUes.GetN(); i++)
+    ApplicationContainer clientApps;
+    uint32_t MaxPacketSize = 1024;
+    Time interPacketInterval = Seconds(0.05);
+    uint32_t maxPacketCount = 1;
+    UdpClientHelper client(remoteAddress, port);
+    client.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
+    client.SetAttribute("Interval", TimeValue(interPacketInterval));
+    client.SetAttribute("PacketSize", UintegerValue(MaxPacketSize));
+    for(uint16_t i = 0; i < txSlUes.GetN(); i++)
     {
-        clientApps.Add(sidelinkClient.Install(txSlUes.Get(i)));
-        double jitter = startTimeSeconds->GetValue();
-        Time appStart = slBearersActivationTime + Seconds(jitter);
-        clientApps.Get(i)->SetStartTime(appStart);
-        // onoff application will send the first packet at :
-        // slBearersActivationTime + random jitter + ((Pkt size in bits) / (Data rate in bits per
-        // sec))
-        realAppStart = slBearersActivationTime.GetSeconds() + jitter +
-                       ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
+        clientApps.Add(client.Install(txSlUes.Get(i)));
+
+        clientApps.Get(i)->SetStartTime(slBearersActivationTime);
+        realAppStart = slBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
         realAppStopTime = realAppStart + simTime.GetSeconds();
         clientApps.Get(i)->SetStopTime(Seconds(realAppStopTime));
         txAppDuration = realAppStopTime - realAppStart;
@@ -1084,137 +1080,40 @@ main(int argc, char* argv[])
         std::cout << "Tx App duration " << std::defaultfloat << txAppDuration << " sec"
                   << std::endl;
     }
+    clientApps.Start(Seconds(2.0));
+    clientApps.Stop(Seconds(10.0));
+
+    Time simStopTime = simTime + slBearersActivationTime + Seconds(realAppStart);
+
 
     ApplicationContainer serverApps;
-    PacketSinkHelper sidelinkSink("ns3::UdpSocketFactory", localAddress);
-    sidelinkSink.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+    UdpServerHelper server(port);
+
     for (uint16_t i = 0; i < rxSlUes.GetN(); i++)
     {
-        serverApps.Add(sidelinkSink.Install(rxSlUes.Get(i)));
+        serverApps.Add(server.Install(rxSlUes.Get(i)));
         serverApps.Start(Seconds(0.0));
     }
 
-    std::ostringstream path;
-    for(uint16_t i = 0; i < txSlUes.GetN(); i++)
-    {
-        path.str("");
-        path << "/NodeList/" << txSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
-        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
-    }
 
-    for(uint16_t i = 0; i < rxSlUes.GetN(); i++)
-    {
-        path.str("");
-        path << "/NodeList/" << rxSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
-        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
-    }
-
-
-
-
-    /*
-     * Hook the traces, for trace data to be stored in a database
-     */
-    std::string exampleName = simTag + "-" + "nr-v2x-west-to-east-highway";
-    // Datebase setup
-    SQLiteOutput db(outputDir + exampleName + ".db");
-
-    UeMacPscchTxOutputStats pscchStats;
-    pscchStats.SetDb(&db, "pscchTxUeMac");
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/SlPscchScheduling",
-                                  MakeBoundCallback(&NotifySlPscchScheduling, &pscchStats));
-
-    UeMacPsschTxOutputStats psschStats;
-    psschStats.SetDb(&db, "psschTxUeMac");
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/SlPsschScheduling",
-                                  MakeBoundCallback(&NotifySlPsschScheduling, &psschStats));
-
-    UePhyPscchRxOutputStats pscchPhyStats;
-    pscchPhyStats.SetDb(&db, "pscchRxUePhy");
-    Config::ConnectWithoutContext(
-        "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/"
-        "NrSpectrumPhyList/*/RxPscchTraceUe",
-        MakeBoundCallback(&NotifySlPscchRx, &pscchPhyStats));
-
-    UePhyPsschRxOutputStats psschPhyStats;
-    psschPhyStats.SetDb(&db, "psschRxUePhy");
-    Config::ConnectWithoutContext(
-        "/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/"
-        "NrSpectrumPhyList/*/RxPsschTraceUe",
-        MakeBoundCallback(&NotifySlPsschRx, &psschPhyStats));
-
-    UeRlcRxOutputStats ueRlcRxStats;
-    ueRlcRxStats.SetDb(&db, "rlcRx");
-    Config::ConnectWithoutContext("/NodeList/*/DeviceList/*/$ns3::NrUeNetDevice/"
-                                  "ComponentCarrierMapUe/*/NrUeMac/RxRlcPduWithTxRnti",
-                                  MakeBoundCallback(&NotifySlRlcPduRx, &ueRlcRxStats));
-
-    UeToUePktTxRxOutputStats pktStats;
-    pktStats.SetDb(&db, "pktTxRx");
+//    std::ostringstream path;
+//    for(uint16_t i = 0; i < txSlUes.GetN(); i++)
+//    {
+//        path.str("");
+//        path << "/NodeList/" << txSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
+//        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+//    }
+//
+//    for(uint16_t i = 0; i < rxSlUes.GetN(); i++)
+//    {
+//        path.str("");
+//        path << "/NodeList/" << rxSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
+//        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+//    }
 
 
-    // Set Tx traces
-    for (uint16_t ac = 0; ac < clientApps.GetN(); ac++)
-    {
-        Ipv4Address localAddrs = clientApps.Get(ac)
-                                     ->GetNode()
-                                     ->GetObject<Ipv4L3Protocol>()
-                                     ->GetAddress(1, 0)
-                                     .GetLocal();
-        std::cout << "Tx address: " << localAddrs << std::endl;
-        clientApps.Get(ac)->TraceConnect("TxWithSeqTsSize",
-                                         "tx",
-                                         MakeBoundCallback(&UePacketTraceDb,
-                                                           &pktStats,
-                                                           clientApps.Get(ac)->GetNode(),
-                                                           localAddrs));
-    }
 
-    // Set Rx traces
-    for (uint16_t ac = 0; ac < serverApps.GetN(); ac++)
-    {
-        Ipv4Address localAddrs = serverApps.Get(ac)
-                                     ->GetNode()
-                                     ->GetObject<Ipv4L3Protocol>()
-                                     ->GetAddress(1, 0)
-                                     .GetLocal();
-        std::cout << "Rx address: " << localAddrs << std::endl;
-        serverApps.Get(ac)->TraceConnect("RxWithSeqTsSize",
-                                         "rx",
-                                         MakeBoundCallback(&UePacketTraceDb,
-                                                           &pktStats,
-                                                           serverApps.Get(ac)->GetNode(),
-                                                           localAddrs));
-    }
 
-    V2xKpi v2xKpi;
-    v2xKpi.SetDbPath(outputDir + exampleName);
-    v2xKpi.SetTxAppDuration(txAppDuration);
-    SavePositionPerIP(&v2xKpi);
-    v2xKpi.SetRangeForV2xKpis(200);
-
-    if (generateInitialPosGnuScript)
-    {
-        std::string initPosFileName = "init-pos-ues-" + exampleName + ".txt";
-        PrintUeInitPosToFile(initPosFileName);
-    }
-
-    // Final simulation stop time is the addition of: simTime + slBearersActivationTime +
-    // realAppStart realAppStart is of the last UE for which we installed the application
-    Time simStopTime = simTime + slBearersActivationTime + Seconds(realAppStart);
-
-    if (generateGifGnuScript)
-    {
-        std::string mobilityFileName = "mobility-" + exampleName + ".txt";
-        RecordMobility(true, mobilityFileName);
-        WriteGifGnuScript(mobilityFileName,
-                          simStopTime,
-                          speed,
-                          rxSlUes.Get(0),
-                          rxSlUes.Get(rxSlUes.GetN() - 1));
-    }
 
     Simulator::Stop(simStopTime);
     Simulator::Run();
@@ -1223,13 +1122,7 @@ main(int argc, char* argv[])
      * VERY IMPORTANT: Do not forget to empty the database cache, which would
      * dump the data store towards the end of the simulation in to a database.
      */
-    pktStats.EmptyCache();
-    pscchStats.EmptyCache();
-    psschStats.EmptyCache();
-    pscchPhyStats.EmptyCache();
-    psschPhyStats.EmptyCache();
-    ueRlcRxStats.EmptyCache();
-    v2xKpi.WriteKpis();
+
 
     // GtkConfigStore config;
     //  config.ConfigureAttributes ();

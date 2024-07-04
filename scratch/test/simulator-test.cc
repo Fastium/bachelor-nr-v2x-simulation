@@ -333,20 +333,21 @@ int main(int argc, char* argv[])
     uint16_t port = 8000;
     Ptr<LteSlTft> tft;
 
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+
     Ipv4InterfaceContainer ueIpIface;
     ueIpIface = epcHelper->AssignUeIpv4Address(ueVoiceNetDev);
 
 
     // set the default gateway for the UE why I need to set the default gateway for the UE
-//    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-//    for (uint32_t u = 0; u < ueVoiceContainer.GetN(); ++u)
-//    {
-//        Ptr<Node> ueNode = ueVoiceContainer.Get(u);
-//        // Set the default gateway for the UE
-//        Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-//        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
-//
-//    }
+    for (uint32_t u = 0; u < ueVoiceContainer.GetN(); ++u)
+    {
+        Ptr<Node> ueNode = ueVoiceContainer.Get(u);
+        // Set the default gateway for the UE
+        Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
+        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
+
+    }
 
     Ipv4Address serverAddr = ueVoiceContainer.Get(serverId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
     Ipv4Address clientAddr = ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
@@ -360,23 +361,15 @@ int main(int argc, char* argv[])
     InetSocketAddress localAddress = InetSocketAddress(clientAddr, port); // put an end point to the client
 
     tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, serverAddr, 255);
-    // Set Sidelink bearers
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
 
     tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, serverAddr, 255);
-    // Set Sidelink bearers
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
     std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
-
-    // Output app start, stop and duration
-//    double realAppStart = finalSlBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
-//    double appStopTime = (finalSimTime).GetSeconds();
-//    std::cout << "App start time : " << realAppStart << " sec" << std::endl;
-//    std::cout << "App stop time : " << appStopTime << " sec" << std::endl;
 
     // Client
     OnOffHelper sidelinkClient("ns3::UdpSocketFactory", remoteAddress);
@@ -392,14 +385,9 @@ int main(int argc, char* argv[])
     for (uint16_t i = 0; i < txSlUes.GetN(); i++)
     {
         clientApps.Add(sidelinkClient.Install(txSlUes.Get(i)));
-        double jitter = 0; // can depend of a random variable
-        Time appStart = slBearersActivationTime + Seconds(jitter);
-        clientApps.Get(i)->SetStartTime(appStart);
-        // onoff application will send the first packet at :
-        // slBearersActivationTime + random jitter + ((Pkt size in bits) / (Data rate in bits per
-        // sec))
-        realAppStart = slBearersActivationTime.GetSeconds() + jitter +
-                       ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
+        clientApps.Get(i)->SetStartTime(slBearersActivationTime);
+
+        realAppStart = slBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
         realAppStopTime = realAppStart + simTime.GetSeconds();
         clientApps.Get(i)->SetStopTime(Seconds(realAppStopTime));
         txAppDuration = realAppStopTime - realAppStart;
@@ -445,6 +433,6 @@ int main(int argc, char* argv[])
 
     Simulator::Destroy();
 
-    std::cout << "Simulation completed" << endl;
+    std::cout << endl << endl << "--- Simulation completed --- " << endl;
     return 0;
 }
