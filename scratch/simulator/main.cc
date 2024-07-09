@@ -33,8 +33,8 @@ int main(int argc, char* argv[])
 //    uint16_t numUes = 1;
 
     // Traffic parameters (that we will use inside this script:)
-    uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
-    double dataRateBe = DATA_RATE_BE; // 16 kilobits per second
+//    uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
+//    double dataRateBe = DATA_RATE_BE; // 16 kilobits per second
 
     // Simulation parameters.
     Time simTime = Seconds(SIMULATION_TIME);
@@ -74,7 +74,6 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     Ptr<Node> src = CreateObject<Node>();
     Ptr<Node> dst = CreateObject<Node>();
-
     Ptr<Node> router12 = CreateObject<Node>();
 
     NodeContainer routers(router12);
@@ -196,9 +195,13 @@ int main(int argc, char* argv[])
 
 
     // update all configuration for the UE devices
-    for (auto it = allNetDevices.Begin(); it != allNetDevices.End(); ++it)
+    for (auto it = net1Container.Begin(); it != net1Container.End(); ++it)
     {
        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
+    }
+    for (auto it = net2Container.Begin(); it != net2Container.End(); ++it)
+    {
+        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
     }
 
     // Sidelink configuration
@@ -217,7 +220,8 @@ int main(int argc, char* argv[])
     nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
 
     // IMPORTANT: Prepare the UEs for sidelink
-    nrSlHelper->PrepareUeForSidelink(allNetDevices, bwpIdContainer);
+    nrSlHelper->PrepareUeForSidelink(net1Container, bwpIdContainer);
+    nrSlHelper->PrepareUeForSidelink(net2Container, bwpIdContainer);
 
     // Resource pool configuration
     LteRrcSap::SlResourcePoolNr slResourcePoolNr;
@@ -320,13 +324,13 @@ int main(int argc, char* argv[])
     internet.SetIpv6StackInstall(false);
     internet.SetRoutingHelper(listRH);
     internet.Install(routers);
-//    stream += internet.AssignStreams(routers, stream);
+    stream += internet.AssignStreams(routers, stream);
 
 
     InternetStackHelper internetNodes;
     internetNodes.SetIpv6StackInstall(false);
     internetNodes.Install(nodes);
-//    stream += internetNodes.AssignStreams(nodes, stream);
+    stream += internetNodes.AssignStreams(nodes, stream);
 
     // Assign addresses.
     // The source and destination networks have global addresses
@@ -342,7 +346,7 @@ int main(int argc, char* argv[])
     ipv4.SetBase(Ipv4Address("10.0.1.0"), Ipv4Mask("255.255.255.0"));
     Ipv4InterfaceContainer iic2 = ipv4.Assign(net2Container);
 
-    uint16_t port = 8000;
+//    uint16_t port = 400;
     Ptr<LteSlTft> tft;
 
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
@@ -350,7 +354,7 @@ int main(int argc, char* argv[])
     staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(src->GetObject<Ipv4>()->GetRoutingProtocol());
     staticRouting->SetDefaultRoute("10.0.0.2", 1);
     staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(dst->GetObject<Ipv4>()->GetRoutingProtocol());
-    staticRouting->SetDefaultRoute("10.0.1.2", 1);
+    staticRouting->SetDefaultRoute("10.0.1.1", 1);
 
     cout << "src: " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << "dst: " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
@@ -363,68 +367,60 @@ int main(int argc, char* argv[])
 //    cout << "N1-I2 : " << allUes.Get(1)->GetObject<Ipv4>()->GetAddress(2, 0).GetLocal() << endl;
 //    cout << "N2-I1 : " << allUes.Get(2)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
 
-    Ipv4Address addr2("10.0.1.2");
-    Address remoteAddr2 = InetSocketAddress(addr2, port);
+    Ipv4Address addr("255.0.0.0");
+    Ipv4Address addr2("10.0.0.2");
+    Ipv4Address addr3("10.0.1.2");
+//    Address remoteAddr2 = InetSocketAddress(addr2, port);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Broadcast, addr2, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr2, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Broadcast, addr2, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr2, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Broadcast, addr2, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Broadcast, addr2, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Application configuration
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-//    std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
 
-    // Client
-    UdpClientHelper client(remoteAddr2, port);
-    client.SetAttribute("MaxPackets", UintegerValue(1));
-    client.SetAttribute("Interval", TimeValue(Time(100)));
-    client.SetAttribute("PacketSize", UintegerValue(1024));
-
-    ApplicationContainer clientApps;
-
-    double realAppStart = 0.0;
-    double realAppStopTime = 0.0;
-//    double txAppDuration = 0.0;
-
-    clientApps.Add(client.Install(src));
-    clientApps.Get(0)->SetStartTime(slBearersActivationTime);
-    realAppStart = slBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
-    realAppStopTime = realAppStart + simTime.GetSeconds();
-    clientApps.Get(0)->SetStopTime(Seconds(realAppStopTime));
-//    txAppDuration = realAppStopTime - realAppStart;
-
-    // Output app start, stop and duration
-//    std::cout << "Start time " << std::fixed << std::setprecision(5) << realAppStart << " sec" << std::endl;
-//    std::cout << "Stop time " << realAppStopTime << " sec" << std::endl;
-//    std::cout << "Tx App duration " << std::defaultfloat << txAppDuration << " sec" << std::endl;
-
-    //server
-    ApplicationContainer serverApps;
-    UdpServerHelper server(port);
-    serverApps.Add(server.Install(dst));
-    serverApps.Start(Seconds(0.0));
-
-//    uint32_t packetSize = 1024;
-//    Time interPacketInterval = Seconds(1.0);
-//    PingHelper ping(remoteAddr2);
+//    // Client
+//    UdpClientHelper client(remoteAddr2, port);
+//    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
+//    client.SetAttribute("MaxPackets", UintegerValue(1));
+//    client.SetAttribute("Interval", TimeValue(Time(100)));
+//    client.SetAttribute("PacketSize", UintegerValue(1024));
 //
-//    ping.SetAttribute("Interval", TimeValue(interPacketInterval));
-//    ping.SetAttribute("Size", UintegerValue(packetSize));
-//    ping.SetAttribute("VerboseMode", EnumValue(Ping::VerboseMode::VERBOSE));
+//    ApplicationContainer clientApps;
+//    double realAppStart = 0.0;
+//    double realAppStopTime = 0.0;
+//    clientApps.Add(client.Install(src));
+//    clientApps.Get(0)->SetStartTime(slBearersActivationTime);
+//    realAppStart = slBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
+//    realAppStopTime = realAppStart + simTime.GetSeconds();
+//    clientApps.Get(0)->SetStopTime(Seconds(realAppStopTime));
 //
-//    ApplicationContainer apps = ping.Install(src);
-//    apps.Start(Seconds(1.0));
-//    apps.Stop(Seconds(10.0));
+//    //server
+//    ApplicationContainer serverApps;
+//    UdpServerHelper server(port);
+//    serverApps.Add(server.Install(dst));
+//    serverApps.Start(Seconds(0.0));
+
+    uint32_t packetSize = 1024;
+    Time interPacketInterval = Seconds(1.0);
+    PingHelper ping(addr3);
+
+    ping.SetAttribute("Interval", TimeValue(interPacketInterval));
+    ping.SetAttribute("Size", UintegerValue(packetSize));
+    ping.SetAttribute("VerboseMode", EnumValue(Ping::VerboseMode::VERBOSE));
+
+    ApplicationContainer apps = ping.Install(src);
+    apps.Start(Seconds(1.0));
+    apps.Stop(Seconds(10.0));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Trace configuration

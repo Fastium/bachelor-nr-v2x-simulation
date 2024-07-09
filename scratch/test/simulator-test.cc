@@ -330,7 +330,7 @@ int main(int argc, char* argv[])
     stream += nrSlHelper->AssignStreams(ueVoiceNetDev, stream);
     stream += internet.AssignStreams(ueVoiceContainer, stream);
 
-    uint16_t port = 8000;
+    uint16_t port = 400;
     Ptr<LteSlTft> tft;
 
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
@@ -350,6 +350,7 @@ int main(int argc, char* argv[])
     }
 
     Ipv4Address serverAddr = ueVoiceContainer.Get(serverId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+//    Ipv4Address serverAddr = Ipv4Address("255.0.0.0");
     Ipv4Address clientAddr = ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 //    Ipv4Address defaultGateway = epcHelper->GetUeDefaultGatewayAddress();
 
@@ -414,16 +415,16 @@ int main(int argc, char* argv[])
 // Trace configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    std::ostringstream path;
-    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+//    std::ostringstream path;
+//    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
+//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+//
+//    path.str("");
+//
+//    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
+//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
 
-    path.str("");
-
-    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
-
-    internet.EnablePcapIpv4("udp-client-server", ueVoiceContainer);
+    internet.EnablePcapIpv4("test", ueVoiceContainer);
 
     Simulator::Stop(finalSimTime);
     Simulator::Run();

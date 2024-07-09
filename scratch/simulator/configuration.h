@@ -38,7 +38,7 @@ using namespace ns3;
 #define UPD_PACKET_SIZE                                 20     // Size of the packet sent by the UEs
 #define DATA_RATE_BE                                    1      // Data rate of the best effort traffic
 
-#define SIMULATION_TIME                                 30      // Duration of the simulation in seconds
+#define SIMULATION_TIME                                 6      // Duration of the simulation in seconds
 #define SIMULATION_SL_BEARER_ACTIVATION_TIME            2.0     // Time to activate the SL bearer in seconds
 
 #define SL_NUMEROLOGY_BWP                               2       // Numerology of the SL BWP

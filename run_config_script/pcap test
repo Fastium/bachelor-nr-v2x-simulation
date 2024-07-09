@@ -1,0 +1,2 @@
+tcpdump -ttttnnr ./outputs/scratch/test/test-n0-i1.pcap
+tcpdump -ttttnnr ./outputs/scratch/test/test-n1-i1.pcap

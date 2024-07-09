@@ -137,12 +137,12 @@ main(int argc, char** argv)
     NodeContainer nodes(src, dst);
 
     NS_LOG_INFO("Create channels.");
-    CsmaHelper csma;
-    csma.SetChannelAttribute("DataRate", DataRateValue(5000000));
-    csma.SetChannelAttribute("Delay", TimeValue(MilliSeconds(2)));
-    NetDeviceContainer ndc1 = csma.Install(net1);
-    NetDeviceContainer ndc3 = csma.Install(net3);
-    NetDeviceContainer ndc7 = csma.Install(net7);
+    PointToPointHelper p2p;
+    p2p.SetDeviceAttribute("DataRate", StringValue("500Mbps"));
+    p2p.SetChannelAttribute("Delay", StringValue("1ms"));
+    NetDeviceContainer ndc1 = p2p.Install(net1);
+    NetDeviceContainer ndc3 = p2p.Install(net3);
+    NetDeviceContainer ndc7 = p2p.Install(net7);
 
     NS_LOG_INFO("Create IPv4 and routing");
     RipHelper ripRouting;
@@ -174,7 +174,6 @@ main(int argc, char** argv)
 
     ipv4.SetBase(Ipv4Address("10.0.1.0"), Ipv4Mask("255.255.255.0"));
     Ipv4InterfaceContainer iic3 = ipv4.Assign(ndc3);
-
 
     ipv4.SetBase(Ipv4Address("10.0.2.0"), Ipv4Mask("255.255.255.0"));
     Ipv4InterfaceContainer iic7 = ipv4.Assign(ndc7);
