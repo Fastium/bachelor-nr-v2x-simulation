@@ -1096,21 +1096,22 @@ main(int argc, char* argv[])
     }
 
 
-//    std::ostringstream path;
-//    for(uint16_t i = 0; i < txSlUes.GetN(); i++)
-//    {
-//        path.str("");
-//        path << "/NodeList/" << txSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
-//        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
-//    }
-//
-//    for(uint16_t i = 0; i < rxSlUes.GetN(); i++)
-//    {
-//        path.str("");
-//        path << "/NodeList/" << rxSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
-//        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
-//    }
+    std::ostringstream path;
+    for(uint16_t i = 0; i < txSlUes.GetN(); i++)
+    {
+        path.str("");
+        path << "/NodeList/" << txSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
+        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+    }
 
+    for(uint16_t i = 0; i < rxSlUes.GetN(); i++)
+    {
+        path.str("");
+        path << "/NodeList/" << rxSlUes.Get(i)->GetId() << "/ApplicationList/0/$ns3::UdpServer/RxWithAddresses";
+        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+    }
+
+    internet.EnablePcapIpv4("udp-client-server", allSlUesContainer);
 
 
 

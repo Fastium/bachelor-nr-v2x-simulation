@@ -29,6 +29,9 @@
 //   - option to use IPv4 or IPv6 addressing
 //   - option to disable logging statements
 
+#include "ns3/flow-monitor-helper.h"
+#include "utils.h"
+
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
 #include "ns3/csma-module.h"
@@ -36,6 +39,7 @@
 
 #include <fstream>
 
+using namespace std;
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("UdpClientServerExample");
@@ -46,14 +50,21 @@ main(int argc, char* argv[])
     // Declare variables used in command-line arguments
     Address serverAddress;
 
+    uint8_t serverId = 0;
+    uint8_t clientId = 1;
+    uint8_t hopId = 2;
 
-    LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
-    LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
+//    LogComponentEnable("UdpClient", LOG_LEVEL_INFO);
+//    LogComponentEnable("UdpServer", LOG_LEVEL_INFO);
+//    LogComponentEnable("UdpClientServerExample", LOG_LEVEL_INFO);
 
+    Packet::EnablePrinting();
 
     NS_LOG_INFO("Create nodes in above topology.");
     NodeContainer n;
-    n.Create(2);
+    n.Create(3);
+
+
 
     InternetStackHelper internet;
     internet.Install(n);
@@ -69,28 +80,86 @@ main(int argc, char* argv[])
 
     Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
-    Ipv4InterfaceContainer i = ipv4.Assign(d);
-    serverAddress = Address(i.GetAddress(1));
+    Ipv4InterfaceContainer interface = ipv4.Assign(d);
+    serverAddress = Address(interface.GetAddress(serverId));
+
+    Ipv4StaticRoutingHelper ipv4RoutingHelper;
+
+
+
+
+
+    NodeContainer tx;
+    NodeContainer rx;
+    NodeContainer hops;
+
+    for(uint8_t i = 0; i < n.GetN(); i++) {
+        if(serverId == i) {
+            rx.Add(n.Get(i));
+        }
+        else if(clientId == i) {
+            tx.Add(n.Get(i));
+        }
+        else if(hopId == i){
+            hops.Add(n.Get(i));
+        }
+        else {
+            cout << "Not all node are used" << endl;
+        }
+    }
 
 
     NS_LOG_INFO("Create UdpServer application on node 1.");
     uint16_t port = 4000;
+    ApplicationContainer serversApp;
     UdpServerHelper server(port);
-    ApplicationContainer apps = server.Install(n.Get(1));
-    apps.Start(Seconds(1.0));
-    apps.Stop(Seconds(10.0));
+    serversApp.Add(server.Install(n.Get(serverId)));
+    serversApp.Get(serverId)->SetStartTime(Seconds(1.0));
 
     NS_LOG_INFO("Create UdpClient application on node 0 to send to node 1.");
     uint32_t MaxPacketSize = 1024;
     Time interPacketInterval = Seconds(0.05);
-    uint32_t maxPacketCount = 10;
+    uint32_t maxPacketCount = 2;
+
+    ApplicationContainer clientsApp;
+
     UdpClientHelper client(serverAddress, port);
     client.SetAttribute("MaxPackets", UintegerValue(maxPacketCount));
     client.SetAttribute("Interval", TimeValue(interPacketInterval));
     client.SetAttribute("PacketSize", UintegerValue(MaxPacketSize));
-    apps = client.Install(n.Get(0));
-    apps.Start(Seconds(2.0));
-    apps.Stop(Seconds(10.0));
+
+    for(uint8_t i = 0; i < tx.GetN(); i++) {
+        clientsApp.Add(client.Install(tx.Get(i)));
+        clientsApp.Get(i)->SetStartTime(Seconds(2.0));
+        clientsApp.Get(i)->SetStopTime(Seconds(10.0));
+    }
+
+
+    std::cout << "Number of server : " << rx.GetN() << std::endl;
+    for(uint32_t i = 0; i < rx.GetN(); i++) {
+        std::cout << "Server " << i << " address : " << rx.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << std::endl;
+    }
+
+    std::cout << "Number of client : " << tx.GetN() << std::endl;
+    for(uint32_t i = 0; i < tx.GetN(); i++) {
+        std::cout << "Client " << i << " address : " << tx.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << std::endl;
+    }
+
+    std::ostringstream path;
+
+    for(uint8_t i = 0; i < tx.GetN(); i++) {
+        path << "/NodeList/" << tx.Get(i)->GetId() << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
+        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+        path.str("");
+    }
+
+    for(uint8_t i = 0; i < rx.GetN(); i++) {
+        path << "/NodeList/" << rx.Get(i)->GetId() << "/ApplicationList/0/$ns3::UdpServer/RxWithAddresses";
+        Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+        path.str("");
+    }
+
+    internet.EnablePcapIpv4("udp-client-server", n);
 
     NS_LOG_INFO("Run Simulation.");
     Simulator::Run();

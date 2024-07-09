@@ -1,0 +1,4 @@
+tcpdump -ttttnnr ./outputs/scratch/simulator/V2X-n0-i1.pcap
+tcpdump -ttttnnr ./outputs/scratch/simulator/V2X-n1-i1.pcap
+tcpdump -ttttnnr ./outputs/scratch/simulator/V2X-n2-i1.pcap
+tcpdump -ttttnnr ./outputs/scratch/simulator/V2X-n2-i2.pcap

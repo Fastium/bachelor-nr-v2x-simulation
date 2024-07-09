@@ -1,0 +1,9 @@
+
+tcpdump -ttttnnr ./outputs/scratch/udp-router/V2X-SrcNode-i1.pcap
+tcpdump -ttttnnr ./outputs/scratch/udp-router/V2X-RouterA-i1.pcap
+tcpdump -ttttnnr ./outputs/scratch/udp-router/V2X-RouterA-i2.pcap
+tcpdump -ttttnnr ./outputs/scratch/udp-router/V2X-RouterD-i1.pcap
+tcpdump -ttttnnr ./outputs/scratch/udp-router/V2X-RouterD-i2.pcap
+tcpdump -ttttnnr ./outputs/scratch/udp-router/V2X-DstNode-i1.pcap
+
+
