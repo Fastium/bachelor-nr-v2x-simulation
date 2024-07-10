@@ -331,6 +331,7 @@ int main(int argc, char* argv[])
     stream += internet.AssignStreams(ueVoiceContainer, stream);
 
     uint16_t port = 400;
+    uint32_t dstL2Id = 255;
     Ptr<LteSlTft> tft;
 
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
@@ -351,6 +352,7 @@ int main(int argc, char* argv[])
 
     Ipv4Address serverAddr = ueVoiceContainer.Get(serverId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 //    Ipv4Address serverAddr = Ipv4Address("255.0.0.0");
+//    Ipv4Address serverAddr = Ipv4Address("127.0.0.1");
     Ipv4Address clientAddr = ueVoiceContainer.Get(clientId)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 //    Ipv4Address defaultGateway = epcHelper->GetUeDefaultGatewayAddress();
 
@@ -361,16 +363,16 @@ int main(int argc, char* argv[])
     InetSocketAddress remoteAddress = InetSocketAddress(serverAddr, port); // put an and point to the server
     InetSocketAddress localAddress = InetSocketAddress(clientAddr, port); // put an end point to the client
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, serverAddr, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::GroupCast, serverAddr, dstL2Id);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, serverAddr, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::GroupCast, serverAddr, dstL2Id);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, ueVoiceNetDev, tft);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-    std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
+//    std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
 
     // Client
     OnOffHelper sidelinkClient("ns3::UdpSocketFactory", remoteAddress);
@@ -381,7 +383,7 @@ int main(int argc, char* argv[])
 
     double realAppStart = 0.0;
     double realAppStopTime = 0.0;
-    double txAppDuration = 0.0;
+//    double txAppDuration = 0.0;
 
     for (uint16_t i = 0; i < txSlUes.GetN(); i++)
     {
@@ -391,14 +393,12 @@ int main(int argc, char* argv[])
         realAppStart = slBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
         realAppStopTime = realAppStart + simTime.GetSeconds();
         clientApps.Get(i)->SetStopTime(Seconds(realAppStopTime));
-        txAppDuration = realAppStopTime - realAppStart;
+//        txAppDuration = realAppStopTime - realAppStart;
 
         // Output app start, stop and duration
-        std::cout << "Tx App " << i + 1 << " start time " << std::fixed << std::setprecision(5)
-                  << realAppStart << " sec" << std::endl;
-        std::cout << "Tx App " << i + 1 << " stop time " << realAppStopTime << " sec" << std::endl;
-        std::cout << "Tx App duration " << std::defaultfloat << txAppDuration << " sec"
-                  << std::endl;
+//        std::cout << "Tx App " << i + 1 << " start time " << std::fixed << std::setprecision(5) << realAppStart << " sec" << std::endl;
+//        std::cout << "Tx App " << i + 1 << " stop time " << realAppStopTime << " sec" << std::endl;
+//        std::cout << "Tx App duration " << std::defaultfloat << txAppDuration << " sec" << std::endl;
     }
 
     //server
@@ -415,14 +415,14 @@ int main(int argc, char* argv[])
 // Trace configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//    std::ostringstream path;
-//    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
-//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
-//
-//    path.str("");
-//
-//    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
-//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+    std::ostringstream path;
+    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+
+    path.str("");
+
+    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
 
     internet.EnablePcapIpv4("test", ueVoiceContainer);
 
