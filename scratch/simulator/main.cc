@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
     // Traffic parameters (that we will use inside this script:)
 //    uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
-//    double dataRateBe = DATA_RATE_BE; // 16 kilobits per second
+    double dataRateBe = DATA_RATE_BE; // 16 kilobits per second
 
     // Simulation parameters.
     Time simTime = Seconds(SIMULATION_TIME);
@@ -63,11 +63,6 @@ int main(int argc, char* argv[])
 
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
-    // Final simulation time is the addition of:
-    // simTime + slBearersActivationTime + 10 ms additional delay for UEs to activate the bearers
-    Time finalSlBearersActivationTime = slBearersActivationTime + Seconds(0.01);
-    Time finalSimTime = simTime + finalSlBearersActivationTime;
-    std::cout << "Final Simulation duration " << finalSimTime.GetSeconds() << std::endl;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Topology configuration
@@ -346,7 +341,7 @@ int main(int argc, char* argv[])
     ipv4.SetBase(Ipv4Address("10.0.1.0"), Ipv4Mask("255.255.255.0"));
     Ipv4InterfaceContainer iic2 = ipv4.Assign(net2Container);
 
-//    uint16_t port = 400;
+    uint16_t port = 400;
     Ptr<LteSlTft> tft;
 
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
@@ -367,82 +362,90 @@ int main(int argc, char* argv[])
 //    cout << "N1-I2 : " << allUes.Get(1)->GetObject<Ipv4>()->GetAddress(2, 0).GetLocal() << endl;
 //    cout << "N2-I1 : " << allUes.Get(2)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
 
-    Ipv4Address addr("255.0.0.0");
-    Ipv4Address addr2("10.0.0.2");
+//    Ipv4Address addr("255.0.0.0");
+//    Ipv4Address addr2("10.0.0.2");
     Ipv4Address addr3("10.0.1.2");
-//    Address remoteAddr2 = InetSocketAddress(addr2, port);
+    Address remoteAddr2 = InetSocketAddress(addr3, port);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr2, 255);
+    Time finalSlBearersActivationTime(Seconds(3.0));
+
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Broadcast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr2, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Broadcast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Broadcast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Broadcast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Application configuration
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//    // Client
-//    UdpClientHelper client(remoteAddr2, port);
-//    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-//    client.SetAttribute("MaxPackets", UintegerValue(1));
-//    client.SetAttribute("Interval", TimeValue(Time(100)));
-//    client.SetAttribute("PacketSize", UintegerValue(1024));
+    // Client
+    UdpClientHelper client(remoteAddr2, port);
+    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
+    client.SetAttribute("MaxPackets", UintegerValue(1));
+    client.SetAttribute("Interval", TimeValue(Time(100)));
+    client.SetAttribute("PacketSize", UintegerValue(20));
+
+    ApplicationContainer clientApps;
+    clientApps.Add(client.Install(src));
+    clientApps.Start(Seconds(5.0));
+    clientApps.Stop(Seconds(15.0));
+    //server
+    ApplicationContainer serverApps;
+    UdpServerHelper server(port);
+    serverApps.Add(server.Install(dst));
+    serverApps.Start(Seconds(4.0));
+
+//    uint32_t packetSize = 1024;
+//    Time interPacketInterval = Seconds(1.0);
+//    PingHelper ping(addr3);
 //
-//    ApplicationContainer clientApps;
-//    double realAppStart = 0.0;
-//    double realAppStopTime = 0.0;
-//    clientApps.Add(client.Install(src));
-//    clientApps.Get(0)->SetStartTime(slBearersActivationTime);
-//    realAppStart = slBearersActivationTime.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
-//    realAppStopTime = realAppStart + simTime.GetSeconds();
-//    clientApps.Get(0)->SetStopTime(Seconds(realAppStopTime));
+//    ping.SetAttribute("Interval", TimeValue(interPacketInterval));
+//    ping.SetAttribute("Size", UintegerValue(packetSize));
+//    ping.SetAttribute("VerboseMode", EnumValue(Ping::VerboseMode::VERBOSE));
 //
-//    //server
-//    ApplicationContainer serverApps;
-//    UdpServerHelper server(port);
-//    serverApps.Add(server.Install(dst));
-//    serverApps.Start(Seconds(0.0));
-
-    uint32_t packetSize = 1024;
-    Time interPacketInterval = Seconds(1.0);
-    PingHelper ping(addr3);
-
-    ping.SetAttribute("Interval", TimeValue(interPacketInterval));
-    ping.SetAttribute("Size", UintegerValue(packetSize));
-    ping.SetAttribute("VerboseMode", EnumValue(Ping::VerboseMode::VERBOSE));
-
-    ApplicationContainer apps = ping.Install(src);
-    apps.Start(Seconds(1.0));
-    apps.Stop(Seconds(10.0));
+//    ApplicationContainer apps = ping.Install(src);
+//    apps.Start(Seconds(1.0));
+//    apps.Stop(Seconds(10.0));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Trace configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//    std::ostringstream path;
-//    path << "/NodeList/" << ueVoiceContainer.Get(clientId)->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
-//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
-//
-//    path.str("");
-//
-//    path << "/NodeList/" << ueVoiceContainer.Get(serverId)->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
-//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+    std::ostringstream path;
+    path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+
+    path.str("");
+    path << "/NodeList/" << dst->GetId() << "/ApplicationList/0/$ns3::UdpServer/RxWithAddresses";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+
+    path.str("");
+    path << "/NodeList/" << src->GetId() << "/$ns3::Ipv4L3Protocol/LocalDeliver";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientIpv4L3Protocol));
+
+    path.str("");
+    path << "/NodeList/" << router12->GetId() << "/$ns3::Ipv4L3Protocol/LocalDeliver";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientIpv4L3Protocol));
+
+    path.str("");
+    path << "/NodeList/" << dst->GetId() << "/$ns3::Ipv4L3Protocol/LocalDeliver";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientIpv4L3Protocol));
 
     internet.EnablePcapIpv4("V2X", allUes);
 
-    Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper>(&std::cout);
-    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(5.0), router12, routingStream);
-    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(5.0), src, routingStream);
-    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(5.0), dst, routingStream);
+//    Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper>(&std::cout);
+//    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(5.0), router12, routingStream);
+//    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(5.0), src, routingStream);
+//    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(5.0), dst, routingStream);
 
-    Simulator::Stop(finalSimTime);
+    Simulator::Stop(Seconds(20.0));
     Simulator::Run();
     /*
     * VERY IMPORTANT: Do not forget to empty the database cache, which would
