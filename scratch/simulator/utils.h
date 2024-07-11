@@ -31,6 +31,8 @@ public:
 
     static void packetClientIpv4L3Protocol(const Ipv4Header &header, Ptr< const Packet > packet, uint32_t interface);
 
+    static void packetIpForwardUnicast(const Ipv4Header &header, Ptr< const Packet > packet, uint32_t interface);
+
 private:
     Utils() = default;
     ~Utils() = default;

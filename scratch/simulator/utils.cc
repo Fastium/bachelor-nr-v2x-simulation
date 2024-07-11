@@ -31,3 +31,8 @@ void Utils::packetClientIpv4L3Protocol(const Ipv4Header& header, Ptr<const Packe
 {
     std::cout << "Packet client Ipv4 L3 Protocol: " << packet->GetSize() << " bytes from " << header.GetSource() << " to " << header.GetDestination() << " on interface " << interface << std::endl;
 }
+
+void Utils::packetIpForwardUnicast(const Ipv4Header &header, Ptr< const Packet > packet, uint32_t interface)
+{
+    std::cout << "Packet IP Forward Unicast: " << packet->GetSize() << " bytes from " << header.GetSource() << " to " << header.GetDestination() << " on interface " << interface << " with a TTL of " << header.GetTtl() << std::endl;
+}

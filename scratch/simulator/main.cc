@@ -436,6 +436,10 @@ int main(int argc, char* argv[])
     Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientIpv4L3Protocol));
 
     path.str("");
+    path << "/NodeList/" << router12->GetId() << "/$ns3::Ipv4L3Protocol/UnicastForward";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetIpForwardUnicast));
+
+    path.str("");
     path << "/NodeList/" << dst->GetId() << "/$ns3::Ipv4L3Protocol/LocalDeliver";
     Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientIpv4L3Protocol));
 
