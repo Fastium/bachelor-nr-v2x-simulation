@@ -3513,10 +3513,10 @@ LteUeRrc::DoActivateNrSlRadioBearer(uint32_t dstL2Id,
                                     bool isUnicast)
 {
     NS_LOG_FUNCTION(this << dstL2Id << isTransmit << isReceive << isUnicast);
-//    if (!isUnicast)
-//    {
+    if (!isUnicast)
+    {
         ActivateNrSlDrb(dstL2Id, isTransmit, isReceive);
-//    }
+    }
 }
 
 void
