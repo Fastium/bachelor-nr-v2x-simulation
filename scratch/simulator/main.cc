@@ -365,20 +365,20 @@ int main(int argc, char* argv[])
 //    Ipv4Address addr("255.0.0.0");
 //    Ipv4Address addr2("10.0.0.2");
     Ipv4Address addr3("10.0.1.2");
-    Address remoteAddr2 = InetSocketAddress(addr3, port);
+//    Address remoteAddr2 = InetSocketAddress(addr3, port);
 
     Time finalSlBearersActivationTime(Seconds(3.0));
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Broadcast, addr3, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Broadcast, addr3, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Broadcast, addr3, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Broadcast, addr3, 255);
+    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, 255);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -386,11 +386,12 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Client
-    UdpClientHelper client(remoteAddr2, port);
+    UdpClientHelper client(addr3, port);
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
     client.SetAttribute("MaxPackets", UintegerValue(1));
-    client.SetAttribute("Interval", TimeValue(Time(100)));
+    client.SetAttribute("Interval", TimeValue(Seconds(1)));
     client.SetAttribute("PacketSize", UintegerValue(20));
+
 
     ApplicationContainer clientApps;
     clientApps.Add(client.Install(src));
