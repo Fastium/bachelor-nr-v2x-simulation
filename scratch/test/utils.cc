@@ -103,3 +103,7 @@ void Utils::packetServerRx(const Ptr<const Packet> packet, const Address& srcAdd
     std::cout << "Packet server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
 }
 
+void Utils::packetClientIpv4L3Protocol(const Ipv4Header& header, Ptr<const Packet> packet, uint32_t interface)
+{
+    std::cout << "Packet client Ipv4 L3 Protocol: " << packet->GetSize() << " bytes from " << header.GetSource() << " to " << header.GetDestination() << " on interface " << interface << std::endl;
+}
