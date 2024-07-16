@@ -1,0 +1,57 @@
+@startuml main-sequence
+
+participant EventFramework as event
+
+participant NrUePhy as phy
+participant NrSpectrumPhy as spectrum
+participant MultiModelSpectrumChannel as spectrumChannel
+
+participant NrUeMac as mac
+
+participant NrSlBwpManagerUe as bwp
+participant LteRlcUm as rlc
+
+== Transmit data packet ==
+
+
+
+event -> phy : StartSlot()
+phy -> mac : DoNrSlSlotIndication()
+activate mac
+    mac -> bwp : DoNotifyNrSlTxOpportunity()
+    bwp -> rlc : DoNotifyNrSlTxOpportunity()
+    rlc -> bwp : DoTransmitNrSlRlcPdu()
+    bwp -> mac : DoTransmitNrSlRlcPdu()
+    mac -> phy : SetPsschMacPdu()
+
+    mac -> phy : SetNrSlVarTtiAllocInfo()
+deactivate mac
+
+phy -> phy : StartNrSlSlot()
+phy -> event : schedule(StartNrSlVarTti)
+event -> phy : StartNrSlVarTti()
+phy -> phy : SlData()
+phy -> phy : PopPsschPacketBurst()
+phy -> event : schedule(SendNrSlDataChannels)
+event -> phy : SendNrSlDataChannels()
+
+phy -> spectrum : StartTxSlDataFrames()
+spectrum -> spectrumChannel : StartTx()
+
+spectrum -> event : schedule(EndTx)
+event -> spectrum : EndTx()
+
+== Receive data packet ==
+
+spectrum -> spectrum : StartRx()
+spectrum -> spectrum : StartRxSlFrame()
+spectrum -> event : schedule(EndRxSlFrame)
+
+event -> spectrum : EndRxSlFrame()
+spectrum -> spectrum : RxSlPssch()
+spectrum -> phy : PhyPsschPduReceived()
+
+phy -> event : schedule(DoReceivePsschPhyPdu)
+event -> mac : DoReceivePsschPhyPdu()
+
+@enduml
