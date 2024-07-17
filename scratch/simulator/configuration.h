@@ -37,7 +37,7 @@ using namespace ns3;
 #define NUM_UE                                          2       // Number of UEs
 #define INTER_UE_DISTANCE                               20      // Distance between two UEs
 
-#define UPD_PACKET_SIZE                                 20     // Size of the packet sent by the UEs
+#define UPD_PACKET_SIZE                                 15     // Size of the packet sent by the UEs
 #define DATA_RATE_BE                                    1      // Data rate of the best effort traffic
 
 #define SIMULATION_TIME                                 10      // Duration of the simulation in seconds

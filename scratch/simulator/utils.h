@@ -33,6 +33,8 @@ public:
 
     static void packetIpForwardUnicast(const Ipv4Header &header, Ptr< const Packet > packet, uint32_t interface);
 
+    static void ipv4ProtocolSendRealOut(Ptr<Packet> packet, Ptr<Ipv4> ipv4, uint32_t interface);
+
 private:
     Utils() = default;
     ~Utils() = default;
