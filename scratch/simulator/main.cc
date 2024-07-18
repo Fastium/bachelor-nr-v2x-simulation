@@ -72,9 +72,10 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     Ptr<Node> src = CreateObject<Node>();
     Ptr<Node> router12 = CreateObject<Node>();
+    Ptr<Node> router23 = CreateObject<Node>();
     Ptr<Node> dst = CreateObject<Node>();
 
-    NodeContainer routers(router12);
+    NodeContainer routers(router12, router23);
     NodeContainer nodes(src, dst);
     NodeContainer allUes;
 
@@ -83,13 +84,11 @@ int main(int argc, char* argv[])
     Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
 
     positionAllocUe->Add(Vector(0, 0.0, 20));
-    positionAllocUe->Add(Vector(100, 0.0, 20));
-    positionAllocUe->Add(Vector(200, 0.0, 20));
+    positionAllocUe->Add(Vector(70, 0.0, 20));
+    positionAllocUe->Add(Vector(140, 0.0, 20));
+    positionAllocUe->Add(Vector(210, 0.0, 20));
 
     allUes.Add(src, routers, dst);
-
-    NodeContainer network1(src, router12);
-    NodeContainer network2(router12, dst);
 
     mobility.SetPositionAllocator(positionAllocUe);
     mobility.Install(allUes);
@@ -182,24 +181,7 @@ int main(int argc, char* argv[])
     * We have configured the attributes we needed. Now, install and get the pointers
     * to the NetDevices, which contains all the NR stack:
     */
-    NetDeviceContainer srcDev = nrHelper->InstallUeDevice(src, allBwps);
-    NetDeviceContainer dstDev = nrHelper->InstallUeDevice(dst, allBwps);
-    NetDeviceContainer router12Dev = nrHelper->InstallUeDevice(router12, allBwps);
-
-    NetDeviceContainer net1Container;
-    net1Container.Add(srcDev);
-    net1Container.Add(router12Dev);
-
-    NetDeviceContainer net2Container;
-    net2Container.Add(router12Dev);
-    net2Container.Add(dstDev);
-
-    NetDeviceContainer allNetDevices;
-    allNetDevices.Add(srcDev);
-    allNetDevices.Add(router12Dev);
-    allNetDevices.Add(dstDev);
-
-
+    NetDeviceContainer allNetDevices = nrHelper->InstallUeDevice(allUes, allBwps);
 
     ////////////////////////////////////////////////////////////////////////
     // 3. Go node for node and change the attributes we have to set up per-node.
@@ -359,10 +341,11 @@ int main(int argc, char* argv[])
 
     cout << "src (" <<  src->GetId() << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << "router12 (" <<  router12->GetId() << "): " << router12->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
+    cout << "router23 (" <<  router12->GetId() << "): " << router23->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << "dst (" <<  dst->GetId() << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << endl;
 
-    Ipv4Address addr3("10.0.0.3");
+    Ipv4Address addr3("10.0.0.4");
 
     Time finalSlBearersActivationTime(Seconds(3.0));
 
@@ -380,8 +363,8 @@ int main(int argc, char* argv[])
     // Client
     UdpClientHelper client(addr3, port);
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-    client.SetAttribute("MaxPackets", UintegerValue(1));
-    client.SetAttribute("Interval", TimeValue(Seconds(1)));
+    client.SetAttribute("MaxPackets", UintegerValue(10));
+    client.SetAttribute("Interval", TimeValue(Seconds(0.3)));
     client.SetAttribute("PacketSize", UintegerValue(UPD_PACKET_SIZE));
 
 
