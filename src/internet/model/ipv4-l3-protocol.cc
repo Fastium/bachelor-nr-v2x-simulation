@@ -592,6 +592,33 @@ Ipv4L3Protocol::Receive(Ptr<NetDevice> device,
 
     Ptr<Packet> packet = p->Copy();
 
+    //control the Uid of the packet
+
+    bool isUid = false;
+    for(uint32_t uid : m_UidPacketReceived)
+    {
+        if(uid == packet->GetUid()){
+            isUid = true;
+            break;
+        }
+    }
+    if(!isUid)
+    {
+        if(m_UidPacketReceived.size() > 100) // if the size is too big
+        {
+            m_UidPacketReceived.pop_front();
+            m_UidPacketReceived.emplace_back(packet->GetUid());
+        }
+        else
+        {
+            m_UidPacketReceived.emplace_back(packet->GetUid());
+        }
+    }
+    else
+    {
+        return; // packet already received
+    }
+
     Ptr<Ipv4Interface> ipv4Interface = m_interfaces[interface];
 
     if (ipv4Interface->IsUp())

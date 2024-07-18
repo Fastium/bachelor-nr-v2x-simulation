@@ -636,6 +636,8 @@ class Ipv4L3Protocol : public Ipv4
     Ipv4RoutingProtocol::MulticastForwardCallback m_mcb; ///< Multicast forward callback
     Ipv4RoutingProtocol::LocalDeliverCallback m_lcb;     ///< Local delivery callback
     Ipv4RoutingProtocol::ErrorCallback m_ecb;            ///< Error callback
+
+    std::list<uint32_t> m_UidPacketReceived;                 //!< List of packet UIDs received
 };
 
 } // Namespace ns3
