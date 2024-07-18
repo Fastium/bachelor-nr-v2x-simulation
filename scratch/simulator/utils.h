@@ -35,6 +35,9 @@ public:
 
     static void ipv4ProtocolSendRealOut(Ptr<Packet> packet, Ptr<Ipv4> ipv4, uint32_t interface);
 
+    static uint32_t packetSent;
+    static uint32_t packetReceived;
+
 private:
     Utils() = default;
     ~Utils() = default;

@@ -43,7 +43,7 @@ using namespace ns3;
 #define SIMULATION_TIME                                 10      // Duration of the simulation in seconds
 #define SIMULATION_SL_BEARER_ACTIVATION_TIME            4.0     // Time to activate the SL bearer in seconds
 
-#define SL_NUMEROLOGY_BWP                               2       // Numerology of the SL BWP
+#define SL_NUMEROLOGY_BWP                               0       // Numerology of the SL BWP
 #define CENTRAL_FREQUENCY_BAND_SL                       5.89e9  // Central frequency of the SL BWP
 #define BANDWIDTH_BAND_SL                               400     // Bandwidth of the SL BWP
 
