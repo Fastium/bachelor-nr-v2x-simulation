@@ -1,0 +1,33 @@
+@startuml main-sequence
+
+participant EventFramework as event
+
+participant main as main
+participant NrSlHelper as nrslhelper
+participant NrHelper as nrhelper
+participant NrPhy as nrphy
+participant NrUePhy as nruephy
+
+participant EventFramework as event
+
+main -> nrhelper : InstallUeDevice(...)
+nrhelper -> nrhelper : InstallSingleUeDevice(...)
+nrhelper -> nrhelper : InstallNrSlPreConfiguration(...)
+nrhelper -> nrhelper : CreateUePhy(...)
+nrhelper -> nruephy : ScheduleStartEventLoop(...)
+nruephy -> event : ScheduleEvent(NrUePhy::StartEventLoop)
+
+main -> nrslhelper : InstallNrSlPreConfiguration(...)
+nrslhelper -> nrslhelper : ConfigUeParams(...)
+nrslhelper -> nrphy : SetNumerology(...)
+
+
+main -> event : Start()
+
+event -> nruephy : StartEventLoop()
+nruephy -> nruephy : DoSetInitialBandwidth()
+nruephy -> nrphy : GetSubcarrierSpacing()
+
+
+
+@enduml

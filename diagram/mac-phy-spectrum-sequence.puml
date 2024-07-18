@@ -37,13 +37,15 @@ event -> phy : SendNrSlDataChannels()
 
 phy -> spectrum : StartTxSlDataFrames()
 spectrum -> spectrumChannel : StartTx()
+spectrumChannel -> event : schedule(StartRx)
 
 spectrum -> event : schedule(EndTx)
 event -> spectrum : EndTx()
 
 == Receive data packet ==
 
-spectrum -> spectrum : StartRx()
+event -> spectrumChannel : StartRx()
+spectrumChannel -> spectrum : StartRx()
 spectrum -> spectrum : StartRxSlFrame()
 spectrum -> event : schedule(EndRxSlFrame)
 
