@@ -92,7 +92,6 @@ int main(int argc, char* argv[])
     NodeContainer network2(router12, dst);
 
     mobility.SetPositionAllocator(positionAllocUe);
-
     mobility.Install(allUes);
 
 
@@ -183,9 +182,24 @@ int main(int argc, char* argv[])
     * We have configured the attributes we needed. Now, install and get the pointers
     * to the NetDevices, which contains all the NR stack:
     */
-    NetDeviceContainer net1Container = nrHelper->InstallUeDevice(network1, allBwps);
-    NetDeviceContainer net2Container = nrHelper->InstallUeDevice(network2, allBwps);
-    NetDeviceContainer allNetDevices(net1Container, net2Container);
+    NetDeviceContainer srcDev = nrHelper->InstallUeDevice(src, allBwps);
+    NetDeviceContainer dstDev = nrHelper->InstallUeDevice(dst, allBwps);
+    NetDeviceContainer router12Dev = nrHelper->InstallUeDevice(router12, allBwps);
+
+    NetDeviceContainer net1Container;
+    net1Container.Add(srcDev);
+    net1Container.Add(router12Dev);
+
+    NetDeviceContainer net2Container;
+    net2Container.Add(router12Dev);
+    net2Container.Add(dstDev);
+
+    NetDeviceContainer allNetDevices;
+    allNetDevices.Add(srcDev);
+    allNetDevices.Add(router12Dev);
+    allNetDevices.Add(dstDev);
+
+
 
     ////////////////////////////////////////////////////////////////////////
     // 3. Go node for node and change the attributes we have to set up per-node.
@@ -193,14 +207,11 @@ int main(int argc, char* argv[])
 
 
     // update all configuration for the UE devices
-    for (auto it = net1Container.Begin(); it != net1Container.End(); ++it)
+    for (auto it = allNetDevices.Begin(); it != allNetDevices.End(); ++it)
     {
        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
     }
-    for (auto it = net2Container.Begin(); it != net2Container.End(); ++it)
-    {
-        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
-    }
+
 
     // Sidelink configuration
     Ptr<NrSlHelper> nrSlHelper = CreateObject<NrSlHelper>();
@@ -219,8 +230,7 @@ int main(int argc, char* argv[])
     nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
 
     // IMPORTANT: Prepare the UEs for sidelink
-    nrSlHelper->PrepareUeForSidelink(net1Container, bwpIdContainer);
-    nrSlHelper->PrepareUeForSidelink(net2Container, bwpIdContainer);
+    nrSlHelper->PrepareUeForSidelink(allNetDevices, bwpIdContainer);
 
     // Resource pool configuration
     LteRrcSap::SlResourcePoolNr slResourcePoolNr;
@@ -302,18 +312,15 @@ int main(int argc, char* argv[])
     slPreConfigNr.slPreconfigFreqInfoList[0] = slFreConfigCommonNr;
 
     // Communicate the above pre-configuration to the NrSlHelper
-    nrSlHelper->InstallNrSlPreConfiguration(net1Container, slPreConfigNr);
-    nrSlHelper->InstallNrSlPreConfiguration(net2Container, slPreConfigNr);
+    nrSlHelper->InstallNrSlPreConfiguration(allNetDevices, slPreConfigNr);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // IP configuration
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Stream configuration to randomize the models
     int64_t stream = 1;
-    stream += nrHelper->AssignStreams(net1Container, stream);
-    stream += nrHelper->AssignStreams(net2Container, stream);
-    stream += nrSlHelper->AssignStreams(net1Container, stream);
-    stream += nrSlHelper->AssignStreams(net2Container, stream);
+    stream += nrHelper->AssignStreams(allNetDevices, stream);
+    stream += nrSlHelper->AssignStreams(allNetDevices, stream);
 
 //    RipHelper ripRouting;
 
@@ -341,52 +348,30 @@ int main(int argc, char* argv[])
     Ipv4AddressHelper ipv4;
 
     ipv4.SetBase(Ipv4Address("10.0.0.0"), Ipv4Mask("255.255.255.0"));
-    Ipv4InterfaceContainer iic1 = ipv4.Assign(net1Container);
+    Ipv4InterfaceContainer iic1 = ipv4.Assign(allNetDevices);
 
-    ipv4.SetBase(Ipv4Address("10.0.1.0"), Ipv4Mask("255.255.255.0"));
-    Ipv4InterfaceContainer iic2 = ipv4.Assign(net2Container);
 
     uint16_t port = 400;
     uint32_t dstL2 = 254;
     Ptr<LteSlTft> tft;
 
-    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-    Ptr<Ipv4StaticRouting> staticRouting;
-    staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(src->GetObject<Ipv4>()->GetRoutingProtocol());
-    staticRouting->SetDefaultRoute("10.0.0.2", 1);
-    staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(dst->GetObject<Ipv4>()->GetRoutingProtocol());
-    staticRouting->SetDefaultRoute("10.0.1.1", 1);
+
 
     cout << "src (" <<  src->GetId() << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-    cout << "router12 interface 1 (" <<  router12->GetId() << "): " << router12->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-    cout << "router12 interface 2 (" <<  router12->GetId() << "): " << router12->GetObject<Ipv4>()->GetAddress(2, 0).GetLocal() << endl;
+    cout << "router12 (" <<  router12->GetId() << "): " << router12->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << "dst (" <<  dst->GetId() << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << endl;
 
-//    cout << "N0-I1 : " << allUes.Get(0)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-//    cout << "N1-I0 : " << allUes.Get(1)->GetObject<Ipv4>()->GetAddress(0, 0).GetLocal() << endl;
-//    cout << "N1-I1 : " << allUes.Get(1)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-//    cout << "N1-I2 : " << allUes.Get(1)->GetObject<Ipv4>()->GetAddress(2, 0).GetLocal() << endl;
-//    cout << "N2-I1 : " << allUes.Get(2)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-
-//    Ipv4Address addr3("255.0.0.0");
-//    Ipv4Address addr2("10.0.0.2");
-    Ipv4Address addr3("10.0.1.2");
-//    Address remoteAddr2 = InetSocketAddress(addr3, port);
+    Ipv4Address addr3("10.0.0.3");
 
     Time finalSlBearersActivationTime(Seconds(3.0));
 
     tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, dstL2);
-    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
+    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, allNetDevices, tft);
 
     tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, dstL2);
-    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net1Container, tft);
+    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, allNetDevices, tft);
 
-    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, dstL2);
-    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
-
-    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, dstL2);
-    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Application configuration
