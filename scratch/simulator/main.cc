@@ -32,8 +32,9 @@ int main(int argc, char* argv[])
     // Simulator parameters
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Scenario parameters (that we will use inside this script):
-    //uint16_t srcDstDistance = 200; // meters
-//    uint16_t numUes = 1;
+    double ueDistance = SRC_DST_DISTANCE / NUM_ROUTERS; // meters
+    uint32_t numUes = NUM_ROUTERS + 2; // Number of UEs
+    uint32_t numOfNetworks = numUes - 1;
 
     // Traffic parameters (that we will use inside this script:)
 //    uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
@@ -70,29 +71,26 @@ int main(int argc, char* argv[])
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Topology configuration
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    Ptr<Node> src = CreateObject<Node>();
-    Ptr<Node> router12 = CreateObject<Node>();
-    Ptr<Node> router23 = CreateObject<Node>();
-    Ptr<Node> dst = CreateObject<Node>();
-
-    NodeContainer routers(router12, router23);
-    NodeContainer nodes(src, dst);
-    NodeContainer allUes;
-
     MobilityHelper mobility;
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
 
-    positionAllocUe->Add(Vector(0, 0.0, 20));
-    positionAllocUe->Add(Vector(20, 0.0, 20));
-    positionAllocUe->Add(Vector(40, 0.0, 20));
-    positionAllocUe->Add(Vector(50, 0.0, 20));
+    Ptr<Node> src = CreateObject<Node>();
 
+    NodeContainer routers;
+    for(uint32_t i = 0; i < NUM_ROUTERS; i++)
+    {
+        routers.Add(CreateObject<Node>());
+        positionAllocUe->Add(Vector(ueDistance * i, 0, 4));
+    }
+    Ptr<Node> dst = CreateObject<Node>();
+
+    NodeContainer nodes(src, dst);
+    NodeContainer allUes;
     allUes.Add(src, routers, dst);
 
     mobility.SetPositionAllocator(positionAllocUe);
     mobility.Install(allUes);
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // NR configuration
@@ -183,18 +181,14 @@ int main(int argc, char* argv[])
     * to the NetDevices, which contains all the NR stack:
     */
     NetDeviceContainer allNetDevices = nrHelper->InstallUeDevice(allUes, allBwps);
-
-    NetDeviceContainer net1Container;
-    net1Container.Add(allNetDevices.Get(0));
-    net1Container.Add(allNetDevices.Get(1));
-
-    NetDeviceContainer net2Container;
-    net2Container.Add(allNetDevices.Get(1));
-    net2Container.Add(allNetDevices.Get(2));
-
-    NetDeviceContainer net3Container;
-    net3Container.Add(allNetDevices.Get(2));
-    net3Container.Add(allNetDevices.Get(3));
+    std::vector<NetDeviceContainer> networks;
+    for(uint32_t i=0; i < numOfNetworks; i++)
+    {
+        NetDeviceContainer net;
+        net.Add(allNetDevices.Get(i));
+        net.Add(allNetDevices.Get(i+1));
+        networks.push_back(net);
+    }
 
 
 
@@ -311,7 +305,6 @@ int main(int argc, char* argv[])
     // Communicate the above pre-configuration to the NrSlHelper
     nrSlHelper->InstallNrSlPreConfiguration(allNetDevices, slPreConfigNr);
 
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // IP configuration
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,41 +313,24 @@ int main(int argc, char* argv[])
     stream += nrHelper->AssignStreams(allNetDevices, stream);
     stream += nrSlHelper->AssignStreams(allNetDevices, stream);
 
-
-//    RipHelper ripRouting;
-
-//    Ipv4ListRoutingHelper listRH;
-//    listRH.Add(ripRouting, 0);
-
-//    InternetStackHelper internet;
-//    internet.SetIpv6StackInstall(false);
-////    internet.SetRoutingHelper(listRH);
-//    internet.Install(routers);
-//    stream += internet.AssignStreams(routers, stream);
-
-
     InternetStackHelper internetNodes;
     internetNodes.SetIpv6StackInstall(false);
     internetNodes.Install(allUes);
     stream += internetNodes.AssignStreams(allUes, stream);
 
     // Assign addresses.
-    // The source and destination networks have global addresses
-    // The "core" network just needs link-local addresses for routing.
-    // We assign global addresses to the routers as well to receive
-    // ICMPv6 errors.
+
     NS_LOG_INFO("Assign IPv4 Addresses.");
     Ipv4AddressHelper ipv4;
 
-    ipv4.SetBase(Ipv4Address("10.0.0.0"), Ipv4Mask("255.255.255.0"));
-    Ipv4InterfaceContainer iic1 = ipv4.Assign(net1Container);
-
-    ipv4.SetBase(Ipv4Address("10.0.1.0"), Ipv4Mask("255.255.255.0"));
-    Ipv4InterfaceContainer iic2 = ipv4.Assign(net2Container);
-
-    ipv4.SetBase(Ipv4Address("10.0.2.0"), Ipv4Mask("255.255.255.0"));
-    Ipv4InterfaceContainer iic3 = ipv4.Assign(net3Container);
-
+    std::vector<Ipv4InterfaceContainer> iics;
+    for(uint32_t i = 0; i < numOfNetworks; i++)
+    {
+        char address[20];
+        std::sprintf(address, "10.0.%d.0", i);
+        ipv4.SetBase(Ipv4Address(address), Ipv4Mask("255.255.255.0"));
+        iics.push_back(ipv4.Assign(networks.at(i)));
+    }
 
     uint16_t port = 400;
     uint32_t dstL2 = 254;
@@ -364,16 +340,22 @@ int main(int argc, char* argv[])
     Ptr<Ipv4StaticRouting> staticRouting;
     staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(src->GetObject<Ipv4>()->GetRoutingProtocol());
     staticRouting->SetDefaultRoute("10.0.0.2", 1);
-    staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(router12->GetObject<Ipv4>()->GetRoutingProtocol());
-    staticRouting->SetDefaultRoute("10.0.1.2", 1);
+    for(uint32_t i = 0; i< NUM_ROUTERS-1; i++)
+    {
+        staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(routers.Get(i)->GetObject<Ipv4>()->GetRoutingProtocol());
+        char address[20];
+        std::sprintf(address, "10.0.%d.2", ++i);
+        staticRouting->SetDefaultRoute(address, 1);
+    }
     staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(dst->GetObject<Ipv4>()->GetRoutingProtocol());
     staticRouting->SetDefaultRoute("10.0.2.1", 1);
 
     cout << "src ("      <<  src->GetId()      << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-    cout << "router12 (" <<  router12->GetId() << "): " << router12->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-    cout << "router12 (" <<  router12->GetId() << "): " << router12->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl;
-    cout << "router23 (" <<  router23->GetId() << "): " << router23->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-    cout << "router23 (" <<  router23->GetId() << "): " << router23->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl;
+    for(uint32_t i = 0; i< NUM_ROUTERS; i++)
+    {
+        cout << "router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
+        cout << "router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl;
+    }
     cout << "dst ("      <<  dst->GetId()      << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << endl;
 
@@ -387,18 +369,6 @@ int main(int argc, char* argv[])
     tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, dstL2);
     nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, allNetDevices, tft);
 
-//    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, dstL2);
-//    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
-//
-//    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, dstL2);
-//    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net2Container, tft);
-//
-//    tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr3, dstL2);
-//    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net3Container, tft);
-//
-//    tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr3, dstL2);
-//    nrSlHelper->ActivateNrSlBearer(finalSlBearersActivationTime, net3Container, tft);
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Application configuration
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -406,7 +376,7 @@ int main(int argc, char* argv[])
     // Client
     UdpClientHelper client(addr3, port);
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-    client.SetAttribute("MaxPackets", UintegerValue(100));
+    client.SetAttribute("MaxPackets", UintegerValue(1));
     client.SetAttribute("Interval", TimeValue(Seconds(0.1)));
     client.SetAttribute("PacketSize", UintegerValue(UPD_PACKET_SIZE));
 
