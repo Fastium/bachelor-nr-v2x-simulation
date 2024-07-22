@@ -592,32 +592,7 @@ Ipv4L3Protocol::Receive(Ptr<NetDevice> device,
 
     Ptr<Packet> packet = p->Copy();
 
-    //control the Uid of the packet
 
-    bool isUid = false;
-    for(uint32_t uid : m_UidPacketReceived)
-    {
-        if(uid == packet->GetUid()){
-            isUid = true;
-            break;
-        }
-    }
-    if(!isUid)
-    {
-        if(m_UidPacketReceived.size() > 100) // if the size is too big
-        {
-            m_UidPacketReceived.pop_front();
-            m_UidPacketReceived.emplace_back(packet->GetUid());
-        }
-        else
-        {
-            m_UidPacketReceived.emplace_back(packet->GetUid());
-        }
-    }
-    else
-    {
-        return; // packet already received
-    }
 
     Ptr<Ipv4Interface> ipv4Interface = m_interfaces[interface];
 
@@ -652,6 +627,40 @@ Ipv4L3Protocol::Receive(Ptr<NetDevice> device,
         NS_LOG_LOGIC("Dropping received packet -- checksum not ok");
         m_dropTrace(ipHeader, packet, DROP_BAD_CHECKSUM, this, interface);
         return;
+    }
+
+    //control the Uid of the packet
+
+    bool isUid = false;
+    for(UidPacketReceived &pUid : m_UidPacketReceived)
+    {
+        if(pUid.id == packet->GetUid()){
+            isUid = true;
+            pUid.timesReceived +=1;
+            if (ipHeader.GetDestination() == m_node->GetObject<Ipv4>()->GetAddress(1,0).GetLocal()) //received on the destination node many times
+            {
+                std::cout << "Packet (" << packet->GetUid() << ") received " << pUid.timesReceived << " times on the destination node "  << m_node->GetId() << std::endl;
+                return; //the packet is already received and processed
+            }
+            else if(pUid.timesReceived >= 5) // received too many times
+            {
+                return;
+            }
+            break;
+        }
+    }
+    if(!isUid)
+    {
+        if(m_UidPacketReceived.size() > 100) // if the size is too big
+        {
+            m_UidPacketReceived.pop_front();
+            m_UidPacketReceived.emplace_back(UidPacketReceived(packet->GetUid()));
+        }
+        else
+        {
+            m_UidPacketReceived.emplace_back(UidPacketReceived(packet->GetUid()));
+            std::cout << "sadasdasdasda" << std::endl;
+        }
     }
 
     // the packet is valid, we update the ARP cache entry (if present)

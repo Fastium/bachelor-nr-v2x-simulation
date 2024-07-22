@@ -637,7 +637,14 @@ class Ipv4L3Protocol : public Ipv4
     Ipv4RoutingProtocol::LocalDeliverCallback m_lcb;     ///< Local delivery callback
     Ipv4RoutingProtocol::ErrorCallback m_ecb;            ///< Error callback
 
-    std::list<uint32_t> m_UidPacketReceived;                 //!< List of packet UIDs received
+    struct UidPacketReceived
+    {
+        UidPacketReceived(uint32_t id): id(id), timesReceived(1){}
+        uint32_t id = 0;
+        uint32_t timesReceived = 0;
+    };
+
+    std::list<UidPacketReceived> m_UidPacketReceived;                 //!< List of packet UIDs received
 };
 
 } // Namespace ns3
