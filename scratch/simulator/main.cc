@@ -32,9 +32,10 @@ int main(int argc, char* argv[])
     // Simulator parameters
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Scenario parameters (that we will use inside this script):
-    double ueDistance = SRC_DST_DISTANCE / NUM_ROUTERS; // meters
     uint32_t numUes = NUM_ROUTERS + 2; // Number of UEs
     uint32_t numOfNetworks = numUes - 1;
+    double ueDistance = SRC_DST_DISTANCE / numOfNetworks; // meters
+
 
     // Traffic parameters (that we will use inside this script:)
 //    uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
@@ -61,33 +62,29 @@ int main(int argc, char* argv[])
 
     Time::SetResolution(Time::NS);
 
-    //allows to see the message of a specific component in the terminal
-    //LogComponentEnable("UdpEchoClientApplication", LOG_LEVEL_INFO);
-    //LogComponentEnable("UdpEchoServerApplication", LOG_LEVEL_INFO);
-
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
-
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Topology configuration
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    MobilityHelper mobility;
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
-
     Ptr<Node> src = CreateObject<Node>();
-
     NodeContainer routers;
     for(uint32_t i = 0; i < NUM_ROUTERS; i++)
     {
         routers.Add(CreateObject<Node>());
-        positionAllocUe->Add(Vector(ueDistance * i, 0, 4));
     }
     Ptr<Node> dst = CreateObject<Node>();
 
-    NodeContainer nodes(src, dst);
     NodeContainer allUes;
     allUes.Add(src, routers, dst);
+
+    MobilityHelper mobility;
+    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
+    for(uint32_t i = 0; i < numUes; i++)
+    {
+        positionAllocUe->Add(Vector(ueDistance * i, 0, 20));
+    }
 
     mobility.SetPositionAllocator(positionAllocUe);
     mobility.Install(allUes);
@@ -105,7 +102,7 @@ int main(int argc, char* argv[])
     CcBwpCreator ccBwpCreator;
     const uint8_t numCcPerBand = 1; // Number of component carriers per band
 
-    BandwidthPartInfo::Scenario bandwidthPartScenario = BandwidthPartInfo::Scenario::UMi_StreetCanyon;
+    BandwidthPartInfo::Scenario bandwidthPartScenario = BandwidthPartInfo::Scenario::;
 
     CcBwpCreator::SimpleOperationBandConf bandConfSl(centralFrequencyBandSl,
                                                     bandwidthBandSl,
@@ -181,13 +178,16 @@ int main(int argc, char* argv[])
     * to the NetDevices, which contains all the NR stack:
     */
     NetDeviceContainer allNetDevices = nrHelper->InstallUeDevice(allUes, allBwps);
+
+
     std::vector<NetDeviceContainer> networks;
-    for(uint32_t i=0; i < numOfNetworks; i++)
+
+    for(uint32_t i = 0; i < numOfNetworks; i++)
     {
-        NetDeviceContainer net;
-        net.Add(allNetDevices.Get(i));
-        net.Add(allNetDevices.Get(i+1));
-        networks.push_back(net);
+        NetDeviceContainer network;
+        network.Add(allNetDevices.Get(i));
+        network.Add(allNetDevices.Get(i+1));
+        networks.push_back(network);
     }
 
 
@@ -198,15 +198,21 @@ int main(int argc, char* argv[])
 
 
     // update all configuration for the UE devices
-    for (auto it = allNetDevices.Begin(); it != allNetDevices.End(); ++it)
+    for(auto it = allNetDevices.Begin(); it != allNetDevices.End(); ++it)
     {
-       DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
+        DynamicCast<NrUeNetDevice>(*it)->UpdateConfig();
     }
-
 
     // Sidelink configuration
     Ptr<NrSlHelper> nrSlHelper = CreateObject<NrSlHelper>();
     nrSlHelper->SetEpcHelper(epcHelper);
+
+    /*
+     * Set the SL error model and AMC
+     * Error model type: ns3::NrEesmCcT1, ns3::NrEesmCcT2, ns3::NrEesmIrT1,
+     *                   ns3::NrEesmIrT2, ns3::NrLteMiErrorModel
+     * AMC type: NrAmc::ShannonModel or NrAmc::ErrorModel
+     */
 
     // Error model and the adaptive modulation coding with the MCS (AMC)
     std::string errorModel = "ns3::NrEesmIrT1";
@@ -217,7 +223,7 @@ int main(int argc, char* argv[])
 
     // Sidelink scheduler attributes with fix MCS value
     nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
-    nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(true));
+    nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(false));
     nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
 
     // IMPORTANT: Prepare the UEs for sidelink
@@ -323,14 +329,12 @@ int main(int argc, char* argv[])
     NS_LOG_INFO("Assign IPv4 Addresses.");
     Ipv4AddressHelper ipv4;
 
-    std::vector<Ipv4InterfaceContainer> iics;
-    for(uint32_t i = 0; i < numOfNetworks; i++)
-    {
-        char address[20];
-        std::sprintf(address, "10.0.%d.0", i);
-        ipv4.SetBase(Ipv4Address(address), Ipv4Mask("255.255.255.0"));
-        iics.push_back(ipv4.Assign(networks.at(i)));
-    }
+    ipv4.SetBase(Ipv4Address("10.0.0.0"), Ipv4Mask("255.255.255.0"));
+    ipv4.Assign(networks.at(0));
+    ipv4.SetBase(Ipv4Address("10.0.1.0"), Ipv4Mask("255.255.255.0"));
+    ipv4.Assign(networks.at(1));
+    ipv4.SetBase(Ipv4Address("10.0.2.0"), Ipv4Mask("255.255.255.0"));
+    ipv4.Assign(networks.at(2));
 
     uint16_t port = 400;
     uint32_t dstL2 = 254;
@@ -338,25 +342,21 @@ int main(int argc, char* argv[])
 
     Ipv4StaticRoutingHelper ipv4RoutingHelper;
     Ptr<Ipv4StaticRouting> staticRouting;
+
     staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(src->GetObject<Ipv4>()->GetRoutingProtocol());
     staticRouting->SetDefaultRoute("10.0.0.2", 1);
-    for(uint32_t i = 0; i< NUM_ROUTERS-1; i++)
-    {
-        staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(routers.Get(i)->GetObject<Ipv4>()->GetRoutingProtocol());
-        char address[20];
-        std::sprintf(address, "10.0.%d.2", ++i);
-        staticRouting->SetDefaultRoute(address, 1);
-    }
-    staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(dst->GetObject<Ipv4>()->GetRoutingProtocol());
-    staticRouting->SetDefaultRoute("10.0.2.1", 1);
 
-    cout << "src ("      <<  src->GetId()      << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
+    staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(routers.Get(0)->GetObject<Ipv4>()->GetRoutingProtocol());
+    staticRouting->SetDefaultRoute("10.0.1.2", 1);
+
+
+    cout << "Src      ("      <<  src->GetId() << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     for(uint32_t i = 0; i< NUM_ROUTERS; i++)
     {
-        cout << "router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-        cout << "router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl;
+        cout << "Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
+        cout << "Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl;
     }
-    cout << "dst ("      <<  dst->GetId()      << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
+    cout << "Dst      ("      <<  dst->GetId() << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
     cout << endl;
 
     Ipv4Address addr3("10.0.2.2");
@@ -376,10 +376,9 @@ int main(int argc, char* argv[])
     // Client
     UdpClientHelper client(addr3, port);
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-    client.SetAttribute("MaxPackets", UintegerValue(1));
+    client.SetAttribute("MaxPackets", UintegerValue(10));
     client.SetAttribute("Interval", TimeValue(Seconds(0.1)));
     client.SetAttribute("PacketSize", UintegerValue(UPD_PACKET_SIZE));
-
 
     ApplicationContainer clientApps;
     clientApps.Add(client.Install(src));
@@ -427,16 +426,16 @@ int main(int argc, char* argv[])
 //    path << "/NodeList/" << router12->GetId() << "/$ns3::Ipv4L3Protocol/UnicastForward";
 //    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetIpForwardUnicast));
 
-//    path.str("");
-//    path << "/NodeList/" << dst->GetId() << "/$ns3::Ipv4L3Protocol/LocalDeliver";
-//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientIpv4L3Protocol));
+    path.str("");
+    path << "/NodeList/" << dst->GetId() << "/$ns3::Ipv4L3Protocol/Rx";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::ipv4Receive));
 
     internetNodes.EnablePcapIpv4("V2X", allUes);
 
 //    Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper>(&std::cout);
-//    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(10.0), router12, routingStream);
-//    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(10.0), router23, routingStream);
 //    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(10.0), src, routingStream);
+//    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(10.0), routers.Get(0), routingStream);
+//    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(10.0), routers.Get(1), routingStream);
 //    Ipv4RoutingHelper::PrintRoutingTableAt(Seconds(10.0), dst, routingStream);
 
     Simulator::Stop(Seconds(32.0));
@@ -450,10 +449,9 @@ int main(int argc, char* argv[])
 
     cout << endl << endl << "--- Simulation completed --- " << endl << endl;
 
-    cout << "Packet sent: " << Utils::packetSent << endl;
-    cout << "Packet received: " << Utils::packetReceived << endl;
-
-
+    cout << "Packet application client sent : " << Utils::packetSent << endl;
+    cout << "Packet application server received:  " << Utils::packetReceived << endl;
+    cout << "Packet ipv4 server received : " << Utils::packetReceivedIpv4Server << endl;
 
     return 0;
 }

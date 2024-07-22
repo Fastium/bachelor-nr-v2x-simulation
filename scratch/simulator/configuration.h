@@ -35,7 +35,7 @@ using namespace ns3;
 // Parameters of the simulation
 
 #define NUM_ROUTERS                                          2       // Number of UEs
-#define SRC_DST_DISTANCE                               400      // Distance between SRC and DST
+#define SRC_DST_DISTANCE                               100      // Distance between SRC and DST
 
 #define UPD_PACKET_SIZE                                 100     // Size of the packet sent by the UEs
 #define DATA_RATE_BE                                    1      // Data rate of the best effort traffic

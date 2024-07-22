@@ -8,6 +8,8 @@ using namespace ns3;
 
 uint32_t Utils::packetSent(0);
 uint32_t Utils::packetReceived(0);
+uint32_t Utils::packetReceivedIpv4Server(0);
+
 
 void Utils::packetClientRx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
 {
@@ -58,4 +60,12 @@ void Utils::ipv4ProtocolSendRealOut(Ptr<Packet> packet, Ptr<Ipv4> ipv4, uint32_t
     std::cout << "  ipv4 : " << ipv4->GetAddress(interface, 0).GetLocal() << std::endl;
     std::cout << "  src : " << header.GetSource() << " dest : " << header.GetDestination() << std::endl;
 
+}
+
+void Utils::ipv4Receive(Ptr<const Packet> packet, Ptr<Ipv4> ipv4, uint32_t interface)
+{
+    if(ipv4->GetAddress(interface, 0).GetLocal() == Ipv4Address("10.0.2.2"))
+    {
+        packetReceivedIpv4Server++;
+    }
 }
