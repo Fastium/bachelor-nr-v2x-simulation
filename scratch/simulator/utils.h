@@ -27,6 +27,8 @@ public:
 
     static void packetServerRx(const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
 
+    static void packetServerRxWithHeader(Ptr< const Packet > p, const Address &from, const Address &to, const SeqTsSizeHeader &header);
+
     static void packetClientRx(const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
 
     static void packetClientIpv4L3Protocol(const Ipv4Header &header, Ptr< const Packet > packet, uint32_t interface);

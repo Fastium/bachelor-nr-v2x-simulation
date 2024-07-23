@@ -34,20 +34,26 @@ using namespace ns3;
 
 // Parameters of the simulation
 
-#define NUM_ROUTERS                                          2       // Number of UEs
-#define SRC_DST_DISTANCE                               100      // Distance between SRC and DST
+#define NUM_ROUTERS                                          10       // Number of UEs
+#define SRC_DST_DISTANCE                               2000      // Distance between SRC and DST
 
 #define UPD_PACKET_SIZE                                 100     // Size of the packet sent by the UEs
-#define DATA_RATE_BE                                    1      // Data rate of the best effort traffic
-
-#define SIMULATION_TIME                                 10      // Duration of the simulation in seconds
-#define SIMULATION_SL_BEARER_ACTIVATION_TIME            4.0     // Time to activate the SL bearer in seconds
+#define DATA_RATE_BE                                    1     // Data rate of the best effort traffic
 
 #define SL_NUMEROLOGY_BWP                               2       // Numerology of the SL BWP
 #define CENTRAL_FREQUENCY_BAND_SL                       5.89e9  // Central frequency of the SL BWP
 #define BANDWIDTH_BAND_SL                               400     // Bandwidth of the SL BWP
 
-#define NR_H_PHY_TxPower                                23      // Transmission power of the UEs
+#define NR_H_PHY_TxPower                                50      // Transmission power of the UEs
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// TIME
+#define BEARER_ACTIVATION_TIME                          4
+#define SIMULATION_TIME                                 20
+
+//                  --Don't change--
+#define BEARER_ACTIVATION_DELAY                         10
+#define SERVER_START_TIME                               2
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // IP

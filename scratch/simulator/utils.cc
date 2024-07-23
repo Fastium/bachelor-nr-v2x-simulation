@@ -69,3 +69,11 @@ void Utils::ipv4Receive(Ptr<const Packet> packet, Ptr<Ipv4> ipv4, uint32_t inter
         packetReceivedIpv4Server++;
     }
 }
+
+void Utils::packetServerRxWithHeader(Ptr<const Packet> p, const Address& from, const Address& to, const SeqTsSizeHeader& header)
+{
+    uint32_t p_id = p->GetUid();
+    Ipv4Address src = InetSocketAddress::ConvertFrom(from).GetIpv4();
+    Ipv4Address dest = InetSocketAddress::ConvertFrom(to).GetIpv4();
+    std::cout << "Packet (" << p_id << ") client Rx: " << p->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+}
