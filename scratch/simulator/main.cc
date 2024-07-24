@@ -12,9 +12,75 @@ NS_LOG_COMPONENT_DEFINE("V2X-simulator"); // enable logging on terminal
 
 int main(int argc, char* argv[])
 {
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Project parameters
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    NS_LOG_UNCOND("Scratch Simulator");
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Project parameters
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Application parameters
+    uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
+    double dataRateBe = DATA_RATE_BE;
+    double simulationTime = SIMULATION_TIME;
+
+    // Physical parameters
+    uint16_t numerologyBwpSl = SL_NUMEROLOGY_BWP;
+    double txPower = NR_H_PHY_TxPower;
+    uint32_t phyNoise = PHY_NOISE;
+    uint32_t phyLatency = PHY_LATENCY;
+    double centralFrequencyBandSl = CENTRAL_FREQUENCY_BAND_SL; // band n47  TDD //Here band is analogous to channel
+    uint16_t bandwidthBandSl = BANDWIDTH_BAND_SL;         // Multiple of 100 KHz; 400 = 40 MHz
+    uint32_t antennaNumRows = ANTENNA_NumRows;
+    uint32_t antennaNumColumns = ANTENNA_NumColumns;
+
+    // MAC parameters
+    bool enableSensing = EnableSensing;
+    uint32_t t1 = MAC_T1;
+    uint32_t t2 = MAC_T2;
+    uint32_t activePoolId = MAC_ActivePoolId;
+    Time reservationPeriod = MilliSeconds(MAC_ReservationPeriod);
+    uint32_t numSidelinkProcess = MAC_NumSidelinkProcess;
+
+    // Node parameters
+    uint32_t numRouters = NUM_ROUTERS;
+    double ueDistance = UE_DISTANCE;
+
+    // Global parameters
+    std::string simTag = SIM_TAG;
+    std::string errorModel = ERROR_MODEL;
+    std::string scenario = SCENARIO;
+    double sidelinkDelay = SIDELINK_DELAY;
+
+
+    CommandLine cmd(__FILE__);
+    cmd.AddValue("udpPacketSizeBe", "UDP packet size for best effort traffic", udpPacketSizeBe);
+    cmd.AddValue("dataRateBe", "Data rate for best effort traffic", dataRateBe);
+    cmd.AddValue("simulationTime", "Simulation time", simulationTime);
+    cmd.AddValue("numerologyBwpSl", "Numerology of the SL BWP", numerologyBwpSl);
+    cmd.AddValue("txPower", "Transmission power of the UEs", txPower);
+    cmd.AddValue("phyNoise", "Noise power", phyNoise);
+    cmd.AddValue("phyLatency", "Latency of the PHY layer", phyLatency);
+    cmd.AddValue("centralFrequencyBandSl", "Central frequency of the SL BWP", centralFrequencyBandSl);
+    cmd.AddValue("bandwidthBandSl", "Bandwidth of the SL BWP", bandwidthBandSl);
+    cmd.AddValue("antennaNumRows", "Number of rows of the antenna", antennaNumRows);
+    cmd.AddValue("antennaNumColumns", "Number of columns of the colomns", antennaNumColumns);
+    cmd.AddValue("enableSensing", "Enable the sensing", enableSensing);
+    cmd.AddValue("t1", "T1", t1);
+    cmd.AddValue("t2", "T2", t2);
+    cmd.AddValue("activePoolId", "Active pool ID", activePoolId);
+    cmd.AddValue("reservationPeriod", "Reservation period", reservationPeriod);
+    cmd.AddValue("numSidelinkProcess", "Number of sidelink process", numSidelinkProcess);
+    cmd.AddValue("numRouters", "Number of UEs", numRouters);
+    cmd.AddValue("ueDistance", "Distance between SRC and DST", ueDistance);
+    cmd.AddValue("simTag", "Simulation tag", simTag);
+    cmd.AddValue("errorModel", "Error model", errorModel);
+    cmd.AddValue("scenario", "Scenario", scenario);
+    cmd.AddValue("sidelinkDelay", "Delay of the S1u link in milliseconds", sidelinkDelay);
+    cmd.Parse(argc, argv);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Project parameters
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    LogComponentEnable("ScratchSimulator", LOG_LEVEL_ALL);
 //    LogComponentEnable("NrSlHelper", LOG_LEVEL_ALL);
 //    LogComponentEnable("LteUeRrc", LOG_LEVEL_ALL);
@@ -23,36 +89,19 @@ int main(int argc, char* argv[])
 //    LogComponentEnable("NrUeMac", LOG_LEVEL_INFO);
 //    LogComponentEnable("NrSpectrumPhy", LOG_LEVEL_DEBUG);
 
-
     // Where we will store the output files.
-    std::string simTag = "default";
     std::string outputDir = "./";
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Simulator parameters
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Simulator parameters
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Scenario parameters (that we will use inside this script):
     uint32_t numUes = NUM_ROUTERS + 2; // Number of UEs
     uint32_t numOfNetworks = numUes - 1;
-//    double ueDistance = SRC_DST_DISTANCE / numOfNetworks; // meters
-
-
-    // Traffic parameters (that we will use inside this script:)
-    uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
-//    double dataRateBe = DATA_RATE_BE; // 16 kilobits per second
-
-
-
-    // NR parameters. We will take the input from the command line, and then we
-    // will pass them inside the NR module.
-    uint16_t numerologyBwpSl = SL_NUMEROLOGY_BWP;
-    double centralFrequencyBandSl = CENTRAL_FREQUENCY_BAND_SL; // band n47  TDD //Here band is analogous to channel
-    uint16_t bandwidthBandSl = BANDWIDTH_BAND_SL;         // Multiple of 100 KHz; 400 = 40 MHz
-    double txPower = NR_H_PHY_TxPower;                    // dBm
 
     // TIMING
     // Simulation parameters.
-    Time t_simulation = Seconds(SIMULATION_TIME);
+    Time t_simulation = Seconds(simulationTime);
     // Sidelink bearers activation time
     Time t_slBearersActivation = Seconds(BEARER_ACTIVATION_TIME);
     Time t_slBearersDelay = MilliSeconds(BEARER_ACTIVATION_DELAY);
@@ -61,20 +110,15 @@ int main(int argc, char* argv[])
     Time t_finalSimulation = t_finalActivationBearers + t_simulation;
     Time t_serverStart = Seconds(SERVER_START_TIME);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Simulator configuration
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    NS_LOG_UNCOND("Scratch Simulator");
-    CommandLine cmd(__FILE__);
-    cmd.Parse(argc, argv);
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Simulator configuration
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     Time::SetResolution(Time::NS);
-
     Config::SetDefault("ns3::LteRlcUm::MaxTxBufferSize", UintegerValue(999999999));
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Topology configuration
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Topology configuration
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     Ptr<Node> src = CreateObject<Node>();
     NodeContainer routers;
     for(uint32_t i = 0; i < NUM_ROUTERS; i++)
@@ -89,31 +133,17 @@ int main(int argc, char* argv[])
     MobilityHelper mobility;
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     Ptr<ListPositionAllocator> positionAllocUe = CreateObject<ListPositionAllocator>();
-//    for(uint32_t i = 0; i < numUes; i++)
-//    {
-//        positionAllocUe->Add(Vector(ueDistance * i, 0, 20));
-//    }
-
-    positionAllocUe->Add(Vector(0, 0, 20));
-    for(uint32_t i = 0; i < NUM_ROUTERS; i++)
+    for(uint32_t i = 0; i < numUes; i++)
     {
-        positionAllocUe->Add(Vector(1000 * i + 1000, 0, 20));
+        positionAllocUe->Add(Vector(ueDistance * i, 0, 20));
     }
-    positionAllocUe->Add(Vector(100 + (NUM_ROUTERS-1)*300, 0, 20));
-
-
-//    positionAllocUe->Add(Vector(0, 0, 20));
-//    positionAllocUe->Add(Vector(100, 0, 20));
-//    positionAllocUe->Add(Vector(200, 0, 20));
-//    positionAllocUe->Add(Vector(300, 0, 20));
-//    positionAllocUe->Add(Vector(400, 0, 20));
 
     mobility.SetPositionAllocator(positionAllocUe);
     mobility.Install(allUes);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // NR configuration
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// NR configuration
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Helpers
     Ptr<NrPointToPointEpcHelper> epcHelper = CreateObject<NrPointToPointEpcHelper>(); //core network
     Ptr<NrHelper> nrHelper = CreateObject<NrHelper>(); // NR stack
@@ -130,7 +160,19 @@ int main(int argc, char* argv[])
      * Umi : Urban Microcell
      */
 
-    BandwidthPartInfo::Scenario bandwidthPartScenario = BandwidthPartInfo::Scenario::V2V_Highway;
+    BandwidthPartInfo::Scenario bandwidthPartScenario = BandwidthPartInfo::V2V_Urban;
+    if(scenario == "v2v_Highway")
+    {
+        bandwidthPartScenario= BandwidthPartInfo::Scenario::V2V_Highway;
+    }
+    else if(scenario == "v2v_Urban")
+    {
+        bandwidthPartScenario= BandwidthPartInfo::Scenario::V2V_Urban;
+    }
+    else
+    {
+        NS_LOG_ERROR("Scenario not supported");
+    }
 
     CcBwpCreator::SimpleOperationBandConf bandConfSl(centralFrequencyBandSl,
                                                     bandwidthBandSl,
@@ -163,23 +205,23 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////
     // 1. Configure the attribute through the helper, and then install;
     // Core latency
-    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(0)));
+    epcHelper->SetAttribute("S1uLinkDelay", TimeValue(MilliSeconds(sidelinkDelay)));
 
     //antenna configuration quasi-omnidirectional transmission and reception (default configuration of the beams)
-    nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(1));
-    nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(1));
+    nrHelper->SetUeAntennaAttribute("NumRows", UintegerValue(antennaNumRows));
+    nrHelper->SetUeAntennaAttribute("NumColumns", UintegerValue(antennaNumColumns));
     nrHelper->SetUeAntennaAttribute("AntennaElement",PointerValue(CreateObject<IsotropicAntennaModel>()));
 
     // Physical layer configuration
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPower));
 
     // Mac layer configuration
-    nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(false));
-    nrHelper->SetUeMacAttribute("T1", UintegerValue(2));
-    nrHelper->SetUeMacAttribute("T2", UintegerValue(33));
-    nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(0));
-    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(MilliSeconds(100)));
-    nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(2));
+    nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(enableSensing));
+    nrHelper->SetUeMacAttribute("T1", UintegerValue(t1));
+    nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));
+    nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(activePoolId));
+    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(reservationPeriod));
+    nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(numSidelinkProcess));
     nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(true));
 
     uint8_t bwpIdForGbrMcptt = 0;
@@ -241,7 +283,6 @@ int main(int argc, char* argv[])
      */
 
     // Error model and the adaptive modulation coding with the MCS (AMC)
-    std::string errorModel = "ns3::NrEesmIrT1";
     nrSlHelper->SetSlErrorModel(errorModel);
 
     // AMC -> Adaptative Modulation and Coding
@@ -337,9 +378,9 @@ int main(int argc, char* argv[])
     // Communicate the above pre-configuration to the NrSlHelper
     nrSlHelper->InstallNrSlPreConfiguration(allNetDevices, slPreConfigNr);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // IP configuration
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IP configuration
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Stream configuration to randomize the models
     int64_t stream = 1;
     stream += nrHelper->AssignStreams(allNetDevices, stream);
@@ -351,7 +392,6 @@ int main(int argc, char* argv[])
     stream += internetNodes.AssignStreams(allUes, stream);
 
     // Assign addresses.
-    NS_LOG_INFO("Assign IPv4 Addresses.");
     Ipv4AddressHelper ipv4;
 
     for(uint32_t i = 0; i < numOfNetworks; i++)
@@ -363,8 +403,8 @@ int main(int argc, char* argv[])
     }
 
 
-    uint16_t port = 8000;
-    uint32_t dstL2 = 254;
+    uint16_t port = PORT;
+    uint32_t dstL2 = DST_L2_ID;
     Ptr<LteSlTft> tft;
 
     Ptr<Ipv4StaticRouting> staticRouting;
@@ -380,29 +420,14 @@ int main(int argc, char* argv[])
         staticRouting->SetDefaultRoute(addr, 1);
     }
 
-//    Ipv4InterfaceContainer ueIpIface;
-//    ueIpIface = epcHelper->AssignUeIpv4Address(allNetDevices);
-//
-//    Ipv4StaticRoutingHelper ipv4RoutingHelper;
-//    for (uint32_t u = 0; u < allUes.GetN(); ++u)
-//    {
-//        Ptr<Node> ueNode = allUes.Get(u);
-//        // Set the default gateway for the UE
-//        Ptr<Ipv4StaticRouting> ueStaticRouting =
-//            ipv4RoutingHelper.GetStaticRouting(ueNode->GetObject<Ipv4>());
-//        ueStaticRouting->SetDefaultRoute(epcHelper->GetUeDefaultGatewayAddress(), 1);
-//    }
-
-    cout << "Src      ("      <<  src->GetId() << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
+    NS_LOG_INFO("Src      ("      <<  src->GetId() << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl);
     for(uint32_t i = 0; i< NUM_ROUTERS; i++)
     {
-        cout << "Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-        cout << "Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl;
+        NS_LOG_INFO("Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl);
+        NS_LOG_INFO("Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl);
     }
-    cout << "Dst      ("      <<  dst->GetId() << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl;
-    cout << endl;
+    NS_LOG_INFO("Dst      ("      <<  dst->GetId() << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl << endl);
 
-//    Ipv4Address addr_server("7.0.0.3");
     Ipv4Address addr_server = dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
     Address socket_server = InetSocketAddress(addr_server, port);
     Address socket_client = InetSocketAddress(Ipv4Address::GetAny(), port);
@@ -413,13 +438,13 @@ int main(int argc, char* argv[])
     tft = Create<LteSlTft>(LteSlTft::Direction::RECEIVE, LteSlTft::CommType::Unicast, addr_server, dstL2);
     nrSlHelper->ActivateNrSlBearer(t_finalActivationBearers, allNetDevices, tft);
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Application configuration
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Application configuration
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Set Application in the UEs
     OnOffHelper sidelinkClient("ns3::UdpSocketFactory", socket_server);
     sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    std::string dataRateBeString = std::to_string(DATA_RATE_BE) + "kb/s";
+    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
     std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
     sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
 
@@ -438,7 +463,7 @@ int main(int argc, char* argv[])
 
     ApplicationContainer serverApps;
     PacketSinkHelper sidelinkSink("ns3::UdpSocketFactory", socket_client);
-    sidelinkSink.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+    sidelinkSink.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(APP_EnableSeqTsSizeHeader));
     serverApps = sidelinkSink.Install(dst);
     serverApps.Start(t_serverStart);
 
@@ -518,7 +543,6 @@ int main(int argc, char* argv[])
 
     cout << "Packet application client sent : " << Utils::packetSent << endl;
     cout << "Packet application server received:  " << Utils::packetReceived << endl;
-//    cout << "Packet ipv4 server received : " << Utils::packetReceivedIpv4Server << endl;
 
     return 0;
 }

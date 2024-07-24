@@ -34,17 +34,35 @@ using namespace ns3;
 
 // Parameters of the simulation
 
-#define NUM_ROUTERS                                          10       // Number of UEs
-#define SRC_DST_DISTANCE                               2000      // Distance between SRC and DST
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// GLobal
+#define SIDELINK_DELAY                              0      // Delay of the S1u link in milliseconds
+#define SHADOWING_ENABLED                          false   // Enable the shadowing model
+#define SCENARIO                                  "v2v_Highway"     // Scenario
+#define ERROR_MODEL                                "ns3::NrEesmCcT1" // Error model
+#define SIM_TAG                                    "default"     // Simulation tag
 
-#define UPD_PACKET_SIZE                                 100     // Size of the packet sent by the UEs
-#define DATA_RATE_BE                                    1     // Data rate of the best effort traffic
+#define NUM_ROUTERS                                          10       // Number of UEs
+#define UE_DISTANCE                               2000      // Distance between SRC and DST
 
 #define SL_NUMEROLOGY_BWP                               2       // Numerology of the SL BWP
 #define CENTRAL_FREQUENCY_BAND_SL                       5.89e9  // Central frequency of the SL BWP
 #define BANDWIDTH_BAND_SL                               400     // Bandwidth of the SL BWP
 
 #define NR_H_PHY_TxPower                                50      // Transmission power of the UEs
+#define PHY_NOISE                                       5    // Noise power
+#define PHY_LATENCY                                   100000.0     // Latency of the PHY layer
+#define UPD_PACKET_SIZE                                 100     // Size of the packet sent by the UEs
+#define DATA_RATE_BE                                    1     // Data rate of the best effort traffic
+#define ANTENNA_NumRows                            1       // Number of rows of the antenna
+#define ANTENNA_NumColumns                         2       // Number of columns of the colomns
+
+#define EnableSensing                          false   // Enable the sensing
+#define MAC_T1                                     2       // T1
+#define MAC_T2                                     33       // T2
+#define MAC_ActivePoolId                           0       // Active pool ID
+#define MAC_ReservationPeriod                      100       // Reservation period
+#define MAC_NumSidelinkProcess                     1       // Number of sidelink process
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TIME
@@ -57,9 +75,8 @@ using namespace ns3;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // IP
-#define IP_GROUP_ADDRESS                                "255.0.0.0"
 #define PORT                                            8000
-#define DST_L2_ID                                       255
+#define DST_L2_ID                                       254
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Application
