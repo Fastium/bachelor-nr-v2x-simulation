@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
     uint32_t t1 = MAC_T1;
     uint32_t t2 = MAC_T2;
     uint32_t activePoolId = MAC_ActivePoolId;
-    Time reservationPeriod = MilliSeconds(MAC_ReservationPeriod);
+    double reservationPeriod = MAC_ReservationPeriod;
     uint32_t numSidelinkProcess = MAC_NumSidelinkProcess;
 
     // Node parameters
@@ -53,6 +53,7 @@ int main(int argc, char* argv[])
 
 
     CommandLine cmd(__FILE__);
+    cmd.Usage ("...");
     cmd.AddValue("udpPacketSizeBe", "UDP packet size for best effort traffic", udpPacketSizeBe);
     cmd.AddValue("dataRateBe", "Data rate for best effort traffic", dataRateBe);
     cmd.AddValue("simulationTime", "Simulation time", simulationTime);
@@ -70,13 +71,43 @@ int main(int argc, char* argv[])
     cmd.AddValue("activePoolId", "Active pool ID", activePoolId);
     cmd.AddValue("reservationPeriod", "Reservation period", reservationPeriod);
     cmd.AddValue("numSidelinkProcess", "Number of sidelink process", numSidelinkProcess);
-    cmd.AddValue("numRouters", "Number of UEs", numRouters);
+    cmd.AddValue("numRouters", "Number of router", numRouters);
     cmd.AddValue("ueDistance", "Distance between SRC and DST", ueDistance);
     cmd.AddValue("simTag", "Simulation tag", simTag);
     cmd.AddValue("errorModel", "Error model", errorModel);
     cmd.AddValue("scenario", "Scenario", scenario);
     cmd.AddValue("sidelinkDelay", "Delay of the S1u link in milliseconds", sidelinkDelay);
     cmd.Parse(argc, argv);
+
+    std::cout << std::endl << std::endl;
+    std::cout << "Simulation parameters : " << std::endl;
+    std::cout << "UDP packet size for best effort traffic : " << udpPacketSizeBe << std::endl;
+    std::cout << "Data rate for best effort traffic : " << dataRateBe << std::endl;
+    std::cout << "Simulation time : " << simulationTime << std::endl;
+    std::cout << "Numerology of the SL BWP : " << numerologyBwpSl << std::endl;
+    std::cout << "Transmission power of the UEs : " << txPower << std::endl;
+    std::cout << "Noise power : " << phyNoise << std::endl;
+    std::cout << "Latency of the PHY layer : " << phyLatency << std::endl;
+    std::cout << "Central frequency of the SL BWP : " << centralFrequencyBandSl << std::endl;
+    std::cout << "Bandwidth of the SL BWP : " << bandwidthBandSl << std::endl;
+    std::cout << "Number of rows of the antenna : " << antennaNumRows << std::endl;
+    std::cout << "Number of columns of the colomns : " << antennaNumColumns << std::endl;
+    std::cout << "Enable the sensing : " << enableSensing << std::endl;
+    std::cout << "T1 : " << t1 << std::endl;
+    std::cout << "T2 : " << t2 << std::endl;
+    std::cout << "Active pool ID : " << activePoolId << std::endl;
+    std::cout << "Reservation period : " << reservationPeriod << std::endl;
+    std::cout << "Number of sidelink process : " << numSidelinkProcess << std::endl;
+    std::cout << "Number of router : " << numRouters << std::endl;
+    std::cout << "Distance between user equipment: " << ueDistance << std::endl;
+    std::cout << "Simulation tag : " << simTag << std::endl;
+    std::cout << "Error model : " << errorModel << std::endl;
+    std::cout << "Scenario : " << scenario << std::endl;
+    std::cout << "Delay of the S1u link in milliseconds : " << sidelinkDelay << std::endl;
+    std::cout << std::endl << std::endl;
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Project parameters
@@ -220,7 +251,7 @@ int main(int argc, char* argv[])
     nrHelper->SetUeMacAttribute("T1", UintegerValue(t1));
     nrHelper->SetUeMacAttribute("T2", UintegerValue(t2));
     nrHelper->SetUeMacAttribute("ActivePoolId", UintegerValue(activePoolId));
-    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(reservationPeriod));
+    nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(MilliSeconds(reservationPeriod)));
     nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(numSidelinkProcess));
     nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(true));
 
@@ -290,7 +321,7 @@ int main(int argc, char* argv[])
 
     // Sidelink scheduler attributes with fix MCS value
     nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
-    nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(false));
+    nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(true));
     nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
 
     // IMPORTANT: Prepare the UEs for sidelink
@@ -521,7 +552,7 @@ int main(int argc, char* argv[])
 //    path << "/NodeList/" << dst->GetId() << "/$ns3::Ipv4L3Protocol/Rx";
 //    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::ipv4Receive));
 
-    internetNodes.EnablePcapIpv4("V2X", allUes);
+//    internetNodes.EnablePcapIpv4("V2X", allUes);
 
 //    Ptr<OutputStreamWrapper> routingStream = Create<OutputStreamWrapper>(&std::cout);
 //    for(uint32_t i=0; i < numUes; i++)
