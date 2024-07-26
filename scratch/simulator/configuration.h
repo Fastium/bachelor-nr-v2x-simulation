@@ -24,6 +24,7 @@
 #include "ns3/stats-module.h"
 
 #include "utils.h"
+#include "packetoutputdb.h"
 
 #include <iostream>
 #include <string>

@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 //    LogComponentEnable("NrSpectrumPhy", LOG_LEVEL_DEBUG);
 
     // Where we will store the output files.
-    std::string outputDir = "./";
+    std::string outputDir = "./results/outputs";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simulator parameters
@@ -519,6 +519,13 @@ int main(int argc, char* argv[])
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Trace configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    SQLiteOutput db(outputDir + simTag + "-output-simulator.db");
+    PacketOutputDb packetStats;
+    packetStats.SetDb(&db, "Trace packets");
+
+    Config::Connect("/NodeList/*/ApplicationList/*/$ns3::OnOffApplication/TxWithAddresses",
+                    MakeCallback(&packetStats.SavePacket));
 
     std::ostringstream path;
     path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";

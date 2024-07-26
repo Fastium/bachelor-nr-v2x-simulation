@@ -19,6 +19,8 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/stats-module.h"
 
+#include "packetoutputdb.h"
+
 using namespace ns3;
 
 class Utils {
@@ -38,6 +40,8 @@ public:
     static void ipv4ProtocolSendRealOut(Ptr<Packet> packet, Ptr<Ipv4> ipv4, uint32_t interface);
 
     static void ipv4Receive(Ptr< const Packet > packet, Ptr< Ipv4 > ipv4, uint32_t interface);
+
+    static void notifyPacket(PacketOutputDb packetOutputDb, const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
 
 
     static uint32_t packetSent;
