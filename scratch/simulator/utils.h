@@ -41,9 +41,6 @@ public:
 
     static void ipv4Receive(Ptr< const Packet > packet, Ptr< Ipv4 > ipv4, uint32_t interface);
 
-    static void notifyPacket(PacketOutputDb packetOutputDb, const Ptr< const Packet > packet, const Address &srcAddress, const Address &destAddress);
-
-
     static uint32_t packetSent;
     static uint32_t packetReceived;
     static uint32_t packetReceivedIpv4Server;

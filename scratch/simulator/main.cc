@@ -22,6 +22,9 @@ int main(int argc, char* argv[])
     uint32_t udpPacketSizeBe = UPD_PACKET_SIZE;
     double dataRateBe = DATA_RATE_BE;
     double simulationTime = SIMULATION_TIME;
+    double bearerActivationTime = BEARER_ACTIVATION_TIME;
+    double bearerDelay = BEARER_ACTIVATION_DELAY;
+    double serverStartTime = SERVER_START_TIME;
 
     // Physical parameters
     uint16_t numerologyBwpSl = SL_NUMEROLOGY_BWP;
@@ -40,6 +43,7 @@ int main(int argc, char* argv[])
     uint32_t activePoolId = MAC_ActivePoolId;
     double reservationPeriod = MAC_ReservationPeriod;
     uint32_t numSidelinkProcess = MAC_NumSidelinkProcess;
+    uint32_t initialMcs = 14;
 
     // Node parameters
     uint32_t numRouters = NUM_ROUTERS;
@@ -77,6 +81,10 @@ int main(int argc, char* argv[])
     cmd.AddValue("errorModel", "Error model", errorModel);
     cmd.AddValue("scenario", "Scenario", scenario);
     cmd.AddValue("sidelinkDelay", "Delay of the S1u link in milliseconds", sidelinkDelay);
+    cmd.AddValue("serverStartTime", "Server start time", serverStartTime);
+    cmd.AddValue("bearerActivationTime", "Bearer activation time", bearerActivationTime);
+    cmd.AddValue("bearerDelay", "Bearer delay", bearerDelay);
+    cmd.AddValue("initialMcs", "Initial MCS", initialMcs);
     cmd.Parse(argc, argv);
 
     std::cout << std::endl << std::endl;
@@ -104,6 +112,10 @@ int main(int argc, char* argv[])
     std::cout << "Error model : " << errorModel << std::endl;
     std::cout << "Scenario : " << scenario << std::endl;
     std::cout << "Delay of the S1u link in milliseconds : " << sidelinkDelay << std::endl;
+    std::cout << "Server start time : " << serverStartTime << std::endl;
+    std::cout << "Bearer activation time : " << bearerActivationTime << std::endl;
+    std::cout << "Bearer delay : " << bearerDelay << std::endl;
+    std::cout << "Initial MCS : " << initialMcs << std::endl;
     std::cout << std::endl << std::endl;
 
 
@@ -121,25 +133,25 @@ int main(int argc, char* argv[])
 //    LogComponentEnable("NrSpectrumPhy", LOG_LEVEL_DEBUG);
 
     // Where we will store the output files.
-    std::string outputDir = "./results/outputs";
+    std::string outputDir = "./";
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simulator parameters
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Scenario parameters (that we will use inside this script):
-    uint32_t numUes = NUM_ROUTERS + 2; // Number of UEs
+    uint32_t numUes = numRouters + 2; // Number of UEs
     uint32_t numOfNetworks = numUes - 1;
 
     // TIMING
     // Simulation parameters.
     Time t_simulation = Seconds(simulationTime);
     // Sidelink bearers activation time
-    Time t_slBearersActivation = Seconds(BEARER_ACTIVATION_TIME);
-    Time t_slBearersDelay = MilliSeconds(BEARER_ACTIVATION_DELAY);
+    Time t_slBearersActivation = Seconds(bearerActivationTime);
+    Time t_slBearersDelay = MilliSeconds(bearerDelay);
 
     Time t_finalActivationBearers = t_slBearersActivation + t_slBearersDelay;
     Time t_finalSimulation = t_finalActivationBearers + t_simulation;
-    Time t_serverStart = Seconds(SERVER_START_TIME);
+    Time t_serverStart = Seconds(serverStartTime);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Simulator configuration
@@ -152,7 +164,7 @@ int main(int argc, char* argv[])
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     Ptr<Node> src = CreateObject<Node>();
     NodeContainer routers;
-    for(uint32_t i = 0; i < NUM_ROUTERS; i++)
+    for(uint32_t i = 0; i < numRouters; i++)
     {
         routers.Add(CreateObject<Node>());
     }
@@ -322,7 +334,7 @@ int main(int argc, char* argv[])
     // Sidelink scheduler attributes with fix MCS value
     nrSlHelper->SetNrSlSchedulerTypeId(NrSlUeMacSchedulerSimple::GetTypeId());
     nrSlHelper->SetUeSlSchedulerAttribute("FixNrSlMcs", BooleanValue(true));
-    nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(14));
+    nrSlHelper->SetUeSlSchedulerAttribute("InitialNrSlMcs", UintegerValue(initialMcs));
 
     // IMPORTANT: Prepare the UEs for sidelink
     nrSlHelper->PrepareUeForSidelink(allNetDevices, bwpIdContainer);
@@ -443,7 +455,7 @@ int main(int argc, char* argv[])
     staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(src->GetObject<Ipv4>()->GetRoutingProtocol());
     staticRouting->SetDefaultRoute("10.0.0.2", 1);
 
-    for(uint32_t i = 0; i < (uint32_t)NUM_ROUTERS-1; i++)
+    for(uint32_t i = 0; i < (uint32_t)numRouters-1; i++)
     {
         char addr[20];
         sprintf(addr, "10.0.%d.2", i);
@@ -522,18 +534,20 @@ int main(int argc, char* argv[])
 
     SQLiteOutput db(outputDir + simTag + "-output-simulator.db");
     PacketOutputDb packetStats;
-    packetStats.SetDb(&db, "Trace packets");
-
-    Config::Connect("/NodeList/*/ApplicationList/*/$ns3::OnOffApplication/TxWithAddresses",
-                    MakeCallback(&packetStats.SavePacket));
+    packetStats.SetDb(&db, "TracePackets");
 
     std::ostringstream path;
+
+    path.str("");
     path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketTx,&packetStats));
     Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
 
     path.str("");
     path << "/NodeList/" << dst->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
+    Config::ConnectWithoutContext(path.str(),MakeCallback(&PacketOutputDb::SavePacketRx,&packetStats));
     Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+
 
 //    path.str("");
 //    path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
@@ -574,6 +588,7 @@ int main(int argc, char* argv[])
     * VERY IMPORTANT: Do not forget to empty the database cache, which would
     * dump the data store towards the end of the simulation in to a database.
     */
+    packetStats.EmptyCache();
 
     Simulator::Destroy();
 

@@ -22,20 +22,20 @@ void Utils::packetClientRx(const Ptr<const Packet> packet, const Address& srcAdd
 
 void Utils::packetClientTx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
 {
-    uint32_t p_id = packet->GetUid();
-    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
-    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
-    std::cout << "Packet (" << p_id << ") client Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+//    uint32_t p_id = packet->GetUid();
+//    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+//    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+//    std::cout << "Packet (" << p_id << ") client Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
 
     packetSent++;
 }
 
 void Utils::packetServerRx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
 {
-    uint32_t p_id = packet->GetUid();
-    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
-    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
-    std::cout << "Packet (" << p_id << ") server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+//    uint32_t p_id = packet->GetUid();
+//    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+//    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+//    std::cout << "Packet (" << p_id << ") server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
     packetReceived++;
 }
 
@@ -79,11 +79,4 @@ void Utils::packetServerRxWithHeader(Ptr<const Packet> p, const Address& from, c
     std::cout << "Packet (" << p_id << ") client Rx: " << p->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
 }
 
-void
-Utils::notifyPacket(PacketOutputDb packetOutputDb,
-                  const Ptr<const Packet> packet,
-                  const Address& srcAddress,
-                  const Address& destAddress)
-{
-    packetOutputDb.SavePacket(packet, srcAddress, destAddress);
-}
+

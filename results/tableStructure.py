@@ -35,3 +35,10 @@ class pscchRxUePhy:
         self.maxNumPerReserve = maxNumPerReserve
         self.SEED = SEED
         self.RUN = RUN
+
+class TracePackets:
+    def __init__(self, txRx, timeNanoSec, packetId, packetSize):
+        self.txRx = str(txRx)
+        self.timeNanoSec = float(timeNanoSec)
+        self.packetId = int(packetId)
+        self.packetSize = int(packetSize)

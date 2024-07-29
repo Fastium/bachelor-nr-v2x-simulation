@@ -35,10 +35,10 @@ PacketOutputDb::Save(std::string txRx, double timeUs, uint32_t packetId, uint32_
     m_packetTraceParamsCache.emplace_back(PacketTraceParams(txRx, timeUs, packetId, packetSize));
 
     // Let's wait until ~1MB of entries before storing it in the database
-    if (m_packetTraceParamsCache.size() * sizeof(PacketTraceParams) > 100000)
-    {
+//    if (m_packetTraceParamsCache.size() * sizeof(PacketTraceParams) > 1000)
+//    {
         WriteCache();
-    }
+//    }
 }
 
 void
@@ -73,8 +73,22 @@ PacketOutputDb::EmptyCache()
     WriteCache();
 }
 
-void
-PacketOutputDb::SavePacket(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
+void PacketOutputDb::SavePacketRx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
 {
-    std::cout << "PacketOutputDb::SavePacket" << std::endl;
+    std::string txRx = "Rx";
+    uint32_t p_id = packet->GetUid();
+//    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+//    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+//    std::cout << "Packet (" << p_id << ") server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+    this->Save(txRx, Simulator::Now().GetNanoSeconds(), p_id, packet->GetSize());
+}
+
+void PacketOutputDb::SavePacketTx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress)
+{
+    std::string txRx = "Tx";
+    uint32_t p_id = packet->GetUid();
+//    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+//    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+//    std::cout << "Packet (" << p_id << ") client Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+    this->Save(txRx, Simulator::Now().GetNanoSeconds(), p_id, packet->GetSize());
 }

@@ -16,13 +16,17 @@ class Parameters :
     t1 = 33
     activePoolId = 0
     reservationPeriod = 100
-    numSidelinkProcess = 1
+    numSidelinkProcess = 4
     numRouters = 5
     ueDistance = 100
     errorModel = "ns3::NrEesmCcT1"
     scenario = "v2v_Highway"
     sidelinkDelay = 0
     simTag = "test"
+    serverStartTime = 3
+    bearerActivationTime = 5
+    bearerDelay = 0.001
+    initialMcs = 14
 
     def get_all(self):
         return (" --udpPacketSizeBe=" + str(self.udpPacketSizeBe) +
@@ -47,6 +51,11 @@ class Parameters :
                 " --errorModel=" + str(self.errorModel) +
                 " --scenario=" + str(self.scenario) +
                 " --sidelinkDelay=" + str(self.sidelinkDelay) +
-                " --simTag=" + str(self.simTag))
+                " --simTag=" + str(self.simTag) +
+                " --serverStartTime=" + str(self.serverStartTime) +
+                " --bearerActivationTime=" + str(self.bearerActivationTime) +
+                " --bearerDelay=" + str(self.bearerDelay) +
+                " --initialMcs=" + str(self.initialMcs)
+                )
 
 
