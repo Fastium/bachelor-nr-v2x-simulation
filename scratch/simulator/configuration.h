@@ -43,18 +43,18 @@ using namespace ns3;
 #define ERROR_MODEL                                "ns3::NrEesmCcT1" // Error model
 #define SIM_TAG                                    "default"     // Simulation tag
 
-#define NUM_ROUTERS                                          10       // Number of UEs
-#define UE_DISTANCE                               2000      // Distance between SRC and DST
+#define NUM_ROUTERS                                          0       // Number of UEs
+#define UE_DISTANCE                               50      // Distance between SRC and DST
 
 #define SL_NUMEROLOGY_BWP                               2       // Numerology of the SL BWP
 #define CENTRAL_FREQUENCY_BAND_SL                       5.89e9  // Central frequency of the SL BWP
 #define BANDWIDTH_BAND_SL                               400     // Bandwidth of the SL BWP
 
-#define NR_H_PHY_TxPower                                50      // Transmission power of the UEs
+#define NR_H_PHY_TxPower                                30      // Transmission power of the UEs
 #define PHY_NOISE                                       5    // Noise power
 #define PHY_LATENCY                                   100000.0     // Latency of the PHY layer
 #define UPD_PACKET_SIZE                                 100     // Size of the packet sent by the UEs
-#define DATA_RATE_BE                                    1     // Data rate of the best effort traffic
+#define DATA_RATE_BE                                    1000     // Data rate of the best effort traffic
 #define ANTENNA_NumRows                            1       // Number of rows of the antenna
 #define ANTENNA_NumColumns                         2       // Number of columns of the colomns
 
@@ -63,12 +63,12 @@ using namespace ns3;
 #define MAC_T2                                     33       // T2
 #define MAC_ActivePoolId                           0       // Active pool ID
 #define MAC_ReservationPeriod                      100       // Reservation period
-#define MAC_NumSidelinkProcess                     1       // Number of sidelink process
+#define MAC_NumSidelinkProcess                     4       // Number of sidelink process
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TIME
 #define BEARER_ACTIVATION_TIME                          4
-#define SIMULATION_TIME                                 20
+#define SIMULATION_TIME                                 10
 
 //                  --Don't change--
 #define BEARER_ACTIVATION_DELAY                         10

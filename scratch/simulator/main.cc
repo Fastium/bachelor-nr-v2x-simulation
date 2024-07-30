@@ -54,6 +54,7 @@ int main(int argc, char* argv[])
     std::string errorModel = ERROR_MODEL;
     std::string scenario = SCENARIO;
     double sidelinkDelay = SIDELINK_DELAY;
+    bool displayParameter = false;
 
 
     CommandLine cmd(__FILE__);
@@ -87,39 +88,41 @@ int main(int argc, char* argv[])
     cmd.AddValue("initialMcs", "Initial MCS", initialMcs);
     cmd.Parse(argc, argv);
 
-    std::cout << std::endl << std::endl;
-    std::cout << "Simulation parameters : " << std::endl;
-    std::cout << "UDP packet size for best effort traffic : " << udpPacketSizeBe << std::endl;
-    std::cout << "Data rate for best effort traffic : " << dataRateBe << std::endl;
-    std::cout << "Simulation time : " << simulationTime << std::endl;
-    std::cout << "Numerology of the SL BWP : " << numerologyBwpSl << std::endl;
-    std::cout << "Transmission power of the UEs : " << txPower << std::endl;
-    std::cout << "Noise power : " << phyNoise << std::endl;
-    std::cout << "Latency of the PHY layer : " << phyLatency << std::endl;
-    std::cout << "Central frequency of the SL BWP : " << centralFrequencyBandSl << std::endl;
-    std::cout << "Bandwidth of the SL BWP : " << bandwidthBandSl << std::endl;
-    std::cout << "Number of rows of the antenna : " << antennaNumRows << std::endl;
-    std::cout << "Number of columns of the colomns : " << antennaNumColumns << std::endl;
-    std::cout << "Enable the sensing : " << enableSensing << std::endl;
-    std::cout << "T1 : " << t1 << std::endl;
-    std::cout << "T2 : " << t2 << std::endl;
-    std::cout << "Active pool ID : " << activePoolId << std::endl;
-    std::cout << "Reservation period : " << reservationPeriod << std::endl;
-    std::cout << "Number of sidelink process : " << numSidelinkProcess << std::endl;
-    std::cout << "Number of router : " << numRouters << std::endl;
-    std::cout << "Distance between user equipment: " << ueDistance << std::endl;
-    std::cout << "Simulation tag : " << simTag << std::endl;
-    std::cout << "Error model : " << errorModel << std::endl;
-    std::cout << "Scenario : " << scenario << std::endl;
-    std::cout << "Delay of the S1u link in milliseconds : " << sidelinkDelay << std::endl;
-    std::cout << "Server start time : " << serverStartTime << std::endl;
-    std::cout << "Bearer activation time : " << bearerActivationTime << std::endl;
-    std::cout << "Bearer delay : " << bearerDelay << std::endl;
-    std::cout << "Initial MCS : " << initialMcs << std::endl;
-    std::cout << std::endl << std::endl;
+    std::cout << std::endl;
 
-
-
+    if(displayParameter == true)
+    {
+        std::cout << std::endl;
+        std::cout << "Simulation parameters : " << std::endl;
+        std::cout << "UDP packet size for best effort traffic : " << udpPacketSizeBe << std::endl;
+        std::cout << "Data rate for best effort traffic : " << dataRateBe << std::endl;
+        std::cout << "Simulation time : " << simulationTime << std::endl;
+        std::cout << "Numerology of the SL BWP : " << numerologyBwpSl << std::endl;
+        std::cout << "Transmission power of the UEs : " << txPower << std::endl;
+        std::cout << "Noise power : " << phyNoise << std::endl;
+        std::cout << "Latency of the PHY layer : " << phyLatency << std::endl;
+        std::cout << "Central frequency of the SL BWP : " << centralFrequencyBandSl << std::endl;
+        std::cout << "Bandwidth of the SL BWP : " << bandwidthBandSl << std::endl;
+        std::cout << "Number of rows of the antenna : " << antennaNumRows << std::endl;
+        std::cout << "Number of columns of the colomns : " << antennaNumColumns << std::endl;
+        std::cout << "Enable the sensing : " << enableSensing << std::endl;
+        std::cout << "T1 : " << t1 << std::endl;
+        std::cout << "T2 : " << t2 << std::endl;
+        std::cout << "Active pool ID : " << activePoolId << std::endl;
+        std::cout << "Reservation period : " << reservationPeriod << std::endl;
+        std::cout << "Number of sidelink process : " << numSidelinkProcess << std::endl;
+        std::cout << "Number of router : " << numRouters << std::endl;
+        std::cout << "Distance between user equipment: " << ueDistance << std::endl;
+        std::cout << "Simulation tag : " << simTag << std::endl;
+        std::cout << "Error model : " << errorModel << std::endl;
+        std::cout << "Scenario : " << scenario << std::endl;
+        std::cout << "Delay of the S1u link in milliseconds : " << sidelinkDelay << std::endl;
+        std::cout << "Server start time : " << serverStartTime << std::endl;
+        std::cout << "Bearer activation time : " << bearerActivationTime << std::endl;
+        std::cout << "Bearer delay : " << bearerDelay << std::endl;
+        std::cout << "Initial MCS : " << initialMcs << std::endl;
+        std::cout << std::endl << std::endl;
+    }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Project parameters
@@ -164,9 +167,12 @@ int main(int argc, char* argv[])
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     Ptr<Node> src = CreateObject<Node>();
     NodeContainer routers;
-    for(uint32_t i = 0; i < numRouters; i++)
+    if(numRouters > 0)
     {
-        routers.Add(CreateObject<Node>());
+        for(uint32_t i = 0; i < numRouters; i++)
+        {
+            routers.Add(CreateObject<Node>());
+        }
     }
     Ptr<Node> dst = CreateObject<Node>();
 
@@ -455,19 +461,30 @@ int main(int argc, char* argv[])
     staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(src->GetObject<Ipv4>()->GetRoutingProtocol());
     staticRouting->SetDefaultRoute("10.0.0.2", 1);
 
-    for(uint32_t i = 0; i < (uint32_t)numRouters-1; i++)
+    if(numRouters > 0)
     {
-        char addr[20];
-        sprintf(addr, "10.0.%d.2", i);
-        staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(routers.Get(i)->GetObject<Ipv4>()->GetRoutingProtocol());
-        staticRouting->SetDefaultRoute(addr, 1);
+        for (uint32_t i = 0; i < (uint32_t)numRouters - 1; i++)
+        {
+            char addr[20];
+            sprintf(addr, "10.0.%d.2", i);
+            staticRouting = Ipv4RoutingHelper::GetRouting<Ipv4StaticRouting>(
+                routers.Get(i)->GetObject<Ipv4>()->GetRoutingProtocol());
+            staticRouting->SetDefaultRoute(addr, 1);
+        }
     }
 
     NS_LOG_INFO("Src      ("      <<  src->GetId() << "): " << src->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl);
-    for(uint32_t i = 0; i< NUM_ROUTERS; i++)
+    if(numRouters > 0)
     {
-        NS_LOG_INFO("Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl);
-        NS_LOG_INFO("Router" << i+1 << i+2 << " (" <<  routers.Get(i)->GetId() << "): " << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal() << endl);
+        for (uint32_t i = 0; i < NUM_ROUTERS; i++)
+        {
+            NS_LOG_INFO("Router" << i + 1 << i + 2 << " (" << routers.Get(i)->GetId() << "): "
+                                 << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal()
+                                 << endl);
+            NS_LOG_INFO("Router" << i + 1 << i + 2 << " (" << routers.Get(i)->GetId() << "): "
+                                 << routers.Get(i)->GetObject<Ipv4>()->GetAddress(1, 1).GetLocal()
+                                 << endl);
+        }
     }
     NS_LOG_INFO("Dst      ("      <<  dst->GetId() << "): " << dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal() << endl << endl);
 
@@ -488,7 +505,7 @@ int main(int argc, char* argv[])
     OnOffHelper sidelinkClient("ns3::UdpSocketFactory", socket_server);
     sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
     std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-    std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
+//    std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
     sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
 
     ApplicationContainer clientApps = sidelinkClient.Install(src);
@@ -498,11 +515,11 @@ int main(int argc, char* argv[])
     clientApps.Stop(t_finalSimulation);
 
     // Output app start, stop and duration
-    double realAppStart = t_finalActivationBearers.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
-    double appStopTime = (t_finalSimulation).GetSeconds();
+//    double realAppStart = t_finalActivationBearers.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
+//    double appStopTime = (t_finalSimulation).GetSeconds();
 
-    std::cout << "App start time " << realAppStart << " sec" << std::endl;
-    std::cout << "App stop time " << appStopTime << " sec" << std::endl;
+//    std::cout << "App start time " << realAppStart << " sec" << std::endl;
+//    std::cout << "App stop time " << appStopTime << " sec" << std::endl;
 
     ApplicationContainer serverApps;
     PacketSinkHelper sidelinkSink("ns3::UdpSocketFactory", socket_client);
@@ -534,19 +551,35 @@ int main(int argc, char* argv[])
 
     SQLiteOutput db(outputDir + simTag + "-output-simulator.db");
     PacketOutputDb packetStats;
-    packetStats.SetDb(&db, "TracePackets");
+    packetStats.SetDbPacket(&db, "TracePackets");
+
+    PacketOutputDb ipLayerStats;
+    ipLayerStats.SetDbPacket(&db, "ipLayerStats");
+
+    PacketOutputDb phySpectrumStats;
+    phySpectrumStats.SetDbFrame(&db, "phySpectrumStats");
 
     std::ostringstream path;
 
     path.str("");
     path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
     Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketTx,&packetStats));
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
 
     path.str("");
     path << "/NodeList/" << dst->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
     Config::ConnectWithoutContext(path.str(),MakeCallback(&PacketOutputDb::SavePacketRx,&packetStats));
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+
+    path.str("");
+    path << "/NodeList/" << dst->GetId() << "/$ns3::Ipv4L3Protocol/Rx";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketRxIpLayer,&ipLayerStats));
+
+    path.str("");
+    path << "/NodeList/" << dst->GetId() << "/DeviceList/0/$ns3::NrUeNetDevice/ComponentCarrierMapUe/0/NrUePhy/SpectrumPhy/RxPsschTraceUe";
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketRxPhyLayer,&phySpectrumStats));
+
+
 
 
 //    path.str("");
@@ -588,14 +621,13 @@ int main(int argc, char* argv[])
     * VERY IMPORTANT: Do not forget to empty the database cache, which would
     * dump the data store towards the end of the simulation in to a database.
     */
-    packetStats.EmptyCache();
 
     Simulator::Destroy();
 
-    cout << endl << endl << "--- Simulation completed --- " << endl << endl;
+//    cout << endl << endl << "--- Simulation completed --- " << endl << endl;
 
-    cout << "Packet application client sent : " << Utils::packetSent << endl;
-    cout << "Packet application server received:  " << Utils::packetReceived << endl;
+//    cout << "Packet application client sent : " << Utils::packetSent << endl;
+//    cout << "Packet application server received:  " << Utils::packetReceived << endl;
 
     return 0;
 }
