@@ -29,25 +29,25 @@ using namespace ns3;
 
 class PacketOutputDb
 {
-    /*
-     * To save :
-     *   - tx/rx
-     *   - time us
-     *   - packet id
-     *   - packet size (bytes)
-     */
 public:
     PacketOutputDb();
     ~PacketOutputDb() = default;
 
-    void SetDbPacket(SQLiteOutput* db, const std::string& tableName);
+    enum tableNames
+    {
+        PACKET_TRACE,
+        FRAME_TRACE
+    };
+
+    void SetDb(SQLiteOutput* db, tableNames tableName, std::string name);
 
     void SavePacketRx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress);
     void SavePacketTx(const Ptr<const Packet> packet, const Address& srcAddress, const Address& destAddress);
 
     void SavePacketRxIpLayer(Ptr< const Packet > packet, Ptr< Ipv4 > ipv4, uint32_t interface);
 
-    void SavePacketRxPhySpectrum(SlRxDataPacketTraceParams traceParams);
+    void SavePacketRxPhySpectrum(const SlRxDataPacketTraceParams traceParams);
+    void SavePacketTxPhySpectrum(SlTxDataPacketTraceParams traceParams);
 
 private:
 
@@ -85,10 +85,8 @@ private:
         uint32_t frameSize;
     }phySpectrumParams;
 
-
-    void SavePacket(std::string txRx, double timeUs, uint32_t packetId, uint32_t packetSize);
-    void SaveFrame(std::string txRx, double timeUs, uint32_t nodeId, bool corrupt, uint32_t frameId, uint32_t frameSize);
-
+    void Save(std::string txRx, double timeUs, uint32_t packetId, uint32_t packetSize);
+    void Save(std::string txRx, double timeUs, uint32_t nodeId, bool corrupt, uint32_t frameId, uint32_t frameSize);
 
     SQLiteOutput* m_db{nullptr};                 //!< DB pointer
     std::string m_tableName{"InvalidTableName"}; //!< table name

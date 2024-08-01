@@ -8,6 +8,16 @@
 
 using namespace ns3;
 
+void frameRx(PacketOutputDb* db, const SlRxDataPacketTraceParams traceParams)
+{
+    db->SavePacketRxPhySpectrum(traceParams);
+}
+
+void frameTx(PacketOutputDb* db, const SlTxDataPacketTraceParams traceParams)
+{
+    db->SavePacketTxPhySpectrum(traceParams);
+}
+
 NS_LOG_COMPONENT_DEFINE("V2X-simulator"); // enable logging on terminal
 
 int main(int argc, char* argv[])
@@ -134,6 +144,8 @@ int main(int argc, char* argv[])
 //    LogComponentEnable("Ipv4L3Protocol", LOG_LEVEL_LOGIC);
 //    LogComponentEnable("NrUeMac", LOG_LEVEL_INFO);
 //    LogComponentEnable("NrSpectrumPhy", LOG_LEVEL_DEBUG);
+//    LogComponentEnable("Config", LOG_LEVEL_DEBUG);
+
 
     // Where we will store the output files.
     std::string outputDir = "./";
@@ -551,13 +563,13 @@ int main(int argc, char* argv[])
 
     SQLiteOutput db(outputDir + simTag + "-output-simulator.db");
     PacketOutputDb packetStats;
-    packetStats.SetDbPacket(&db, "TracePackets");
+    packetStats.SetDb(&db, PacketOutputDb::PACKET_TRACE, "appStats");
 
     PacketOutputDb ipLayerStats;
-    ipLayerStats.SetDbPacket(&db, "ipLayerStats");
+    ipLayerStats.SetDb(&db, PacketOutputDb::PACKET_TRACE, "ipLayerStats");
 
     PacketOutputDb phySpectrumStats;
-    phySpectrumStats.SetDbFrame(&db, "phySpectrumStats");
+    phySpectrumStats.SetDb(&db, PacketOutputDb::FRAME_TRACE, "phySpectrumStats");
 
     std::ostringstream path;
 
@@ -576,10 +588,12 @@ int main(int argc, char* argv[])
     Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketRxIpLayer,&ipLayerStats));
 
     path.str("");
-    path << "/NodeList/" << dst->GetId() << "/DeviceList/0/$ns3::NrUeNetDevice/ComponentCarrierMapUe/0/NrUePhy/SpectrumPhy/RxPsschTraceUe";
-    Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketRxPhyLayer,&phySpectrumStats));
+    path << "/NodeList/" << dst->GetId() <<  "/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/RxPsschTraceUe";
+    Config::ConnectWithoutContext(path.str(), MakeBoundCallback(&frameRx, &phySpectrumStats));
 
-
+    path.str("");
+    path << "/NodeList/" << src->GetId() << "/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/TxSlDataTrace";
+    Config::ConnectWithoutContext(path.str(), MakeBoundCallback(&frameTx, &phySpectrumStats));
 
 
 //    path.str("");
