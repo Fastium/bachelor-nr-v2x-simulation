@@ -584,7 +584,7 @@ Ipv4L3Protocol::Receive(Ptr<NetDevice> device,
                         NetDevice::PacketType packetType)
 {
     NS_LOG_FUNCTION(this << device << p << protocol << from << to << packetType);
-
+//    std::cout << "Receive ip layer  -> node " << m_node->GetId() << ": packet " << p->GetUid() << std::endl;
     NS_LOG_LOGIC("Packet from " << from << " received on node " << m_node->GetId());
 
     int32_t interface = GetInterfaceForDevice(device);
@@ -639,11 +639,12 @@ Ipv4L3Protocol::Receive(Ptr<NetDevice> device,
             pUid.timesReceived +=1;
             if (ipHeader.GetDestination() == m_node->GetObject<Ipv4>()->GetAddress(1,0).GetLocal()) //received on the destination node many times
             {
-                std::cout << "Packet (" << packet->GetUid() << ") received " << pUid.timesReceived << " times on the destination node "  << m_node->GetId() << std::endl;
+//                std::cout << "Packet (" << packet->GetUid() << ") received " << pUid.timesReceived << " times on the destination node "  << m_node->GetId() << std::endl;
                 return; //the packet is already received and processed
             }
-            else if(pUid.timesReceived >= 5) // received too many times
+            else if(pUid.timesReceived >= 1) // received too many times
             {
+//                std::cout << "Packet (" << packet->GetUid() << ") received " << pUid.timesReceived << " times on the destination node "  << m_node->GetId() << std::endl;
                 return;
             }
             break;
@@ -659,7 +660,6 @@ Ipv4L3Protocol::Receive(Ptr<NetDevice> device,
         else
         {
             m_UidPacketReceived.emplace_back(UidPacketReceived(packet->GetUid()));
-            std::cout << "sadasdasdasda" << std::endl;
         }
     }
 
@@ -1014,6 +1014,7 @@ void
 Ipv4L3Protocol::SendRealOut(Ptr<Ipv4Route> route, Ptr<Packet> packet, const Ipv4Header& ipHeader)
 {
     NS_LOG_FUNCTION(this << route << packet << &ipHeader);
+
     if (!route)
     {
         NS_LOG_WARN("No route to host.  Drop.");
@@ -1056,6 +1057,7 @@ Ipv4L3Protocol::SendRealOut(Ptr<Ipv4Route> route, Ptr<Packet> packet, const Ipv4
         }
         else
         {
+//            std::cout << "Send real route   -> node " << m_node->GetId() << ": packet " << packet->GetUid() << " src " << ipHeader.GetSource() << " : dst " << ipHeader.GetDestination() << " : interface " << interface << " : packet ptr " << packet << std::endl;
             CallTxTrace(ipHeader, packet, this, interface);
             outInterface->Send(packet, ipHeader, target);
         }
@@ -1104,12 +1106,14 @@ void
 Ipv4L3Protocol::IpForward(Ptr<Ipv4Route> rtentry, Ptr<const Packet> p, const Ipv4Header& header)
 {
     NS_LOG_FUNCTION(this << rtentry << p << header);
-    NS_LOG_LOGIC("Forwarding logic for node: " << m_node->GetId());
     // Forwarding
     Ipv4Header ipHeader = header;
     Ptr<Packet> packet = p->Copy();
     int32_t interface = GetInterfaceForDevice(rtentry->GetOutputDevice());
     ipHeader.SetTtl(ipHeader.GetTtl() - 1);
+
+//    std::cout << "Ip forward Node " << m_node->GetId() << " TTL " << (uint32_t) ipHeader.GetTtl() << std::endl;
+
     if (ipHeader.GetTtl() == 0)
     {
         // Do not reply to multicast/broadcast IP address
@@ -1134,6 +1138,7 @@ Ipv4L3Protocol::IpForward(Ptr<Ipv4Route> rtentry, Ptr<const Packet> p, const Ipv
     }
 
     m_unicastForwardTrace(ipHeader, packet, interface);
+//    std::cout << "Forwarding        -> node " << m_node->GetId() << ": packet " << p->GetUid() << " src " << header.GetSource() << " : dst " << header.GetDestination() <<  std::endl;
     SendRealOut(rtentry, packet, ipHeader);
 }
 
@@ -1159,6 +1164,8 @@ Ipv4L3Protocol::LocalDeliver(Ptr<const Packet> packet, const Ipv4Header& ip, uin
     }
 
     m_localDeliverTrace(ipHeader, p, iif);
+//    std::cout << "Local deliver     -> node " << m_node->GetId() << ": packet " << p->GetUid() << "packet ptr " << packet << std::endl;
+
 
     Ptr<IpL4Protocol> protocol = GetProtocol(ipHeader.GetProtocol(), iif);
     if (protocol)

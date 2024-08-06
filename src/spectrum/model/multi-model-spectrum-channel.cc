@@ -229,6 +229,7 @@ void
 MultiModelSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> txParams)
 {
     NS_LOG_FUNCTION(this << txParams);
+//    std::cout << "StartTx channel model, node : " << txParams->txPhy->GetDevice()->GetNode()->GetId() << std::endl;
 
     NS_ASSERT(txParams->txPhy);
     NS_ASSERT(txParams->psd);
@@ -310,7 +311,7 @@ MultiModelSpectrumChannel::StartTx(Ptr<SpectrumSignalParameters> txParams)
                 }
 
                 NS_LOG_LOGIC("copying signal parameters " << txParams);
-                Ptr<SpectrumSignalParameters> rxParams = txParams->Copy();
+                Ptr<SpectrumSignalParameters> rxParams = txParams->Copy(); //copy the packet
                 rxParams->psd = Copy<SpectrumValue>(convertedTxPowerSpectrum);
                 Time delay = MicroSeconds(0);
 
@@ -399,6 +400,8 @@ void
 MultiModelSpectrumChannel::StartRx(Ptr<SpectrumSignalParameters> params, Ptr<SpectrumPhy> receiver)
 {
     NS_LOG_FUNCTION(this);
+//    std::cout << "StartRx channel model, node : " << params->txPhy->GetDevice()->GetNode()->GetId() << std::endl;
+
     if (m_spectrumPropagationLoss)
     {
         params->psd =

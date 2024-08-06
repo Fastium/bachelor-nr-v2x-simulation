@@ -334,6 +334,7 @@ TrafficControlLayer::Receive(Ptr<NetDevice> device,
                              NetDevice::PacketType packetType)
 {
     NS_LOG_FUNCTION(this << device << p << protocol << from << to << packetType);
+//    std::cout << "TrafficControl rx -> node " << m_node->GetId() << ": packet " << p->GetUid() << std::endl;
 
     bool found = false;
 

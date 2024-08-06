@@ -248,6 +248,7 @@ Rip::RouteInput(Ptr<const Packet> p,
                 const ErrorCallback& ecb)
 {
     NS_LOG_FUNCTION(this << p << header << header.GetSource() << header.GetDestination() << idev);
+//    std::cout << "Route inpute 2    -> packet " << p->GetUid() << " src " << header.GetSource() << " : dst " << header.GetDestination() <<  std::endl;
 
     NS_ASSERT(m_ipv4);
     // Check if input device supports IP

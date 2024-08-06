@@ -136,6 +136,8 @@ Ipv4ListRouting::RouteInput(Ptr<const Packet> p,
                             const ErrorCallback& ecb)
 {
     NS_LOG_FUNCTION(this << p << header << idev << &ucb << &mcb << &lcb << &ecb);
+//    std::cout << "Route inpute 1    -> packet " << p->GetUid() << " src " << header.GetSource() << " : dst " << header.GetDestination() <<  std::endl;
+
     bool retVal = false;
     NS_LOG_LOGIC("RouteInput logic for node: " << m_ipv4->GetObject<Node>()->GetId());
 

@@ -26,6 +26,7 @@
 #include "spectrum-value.h"
 
 #include <ns3/propagation-delay-model.h>
+#include <ns3/spectrum-model.h>
 
 #include <map>
 #include <set>
