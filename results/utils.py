@@ -6,7 +6,7 @@ simulator_dir = "scratch/simulator/main.cc"
 test_simulator_dir = "hello-simulator"
 
 clean_command = "./ns3 clean"
-configure_command = "./ns3 configure --disable-tests"
+configure_command = "./ns3 configure --disable-tests --build-profile=release"
 build_command = "./ns3 build"
 run_command = "./ns3 run " + simulator_dir
 
@@ -19,3 +19,10 @@ def configure_simulator():
 
 def run_simulator(arguments):
     os.system(run_command + " -- " + arguments.get_all())
+
+
+def write(text):
+    file = open("history.txt", "at")
+    print(text)
+    file.write(text + "\n")
+    file.close()

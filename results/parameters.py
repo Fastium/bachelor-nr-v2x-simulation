@@ -11,12 +11,12 @@ class Parameters :
     bandwidthBandSl = 400
     antennaNumRows = 1
     antennaNumColumns = 2
-    enableSensing = False
+    enableSensing = True
     t1 = 2
     t1 = 33
     activePoolId = 0
     reservationPeriod = 100
-    numSidelinkProcess = 4
+    numSidelinkProcess = 8
     numRouters = 5
     ueDistance = 100
     errorModel = "ns3::NrEesmCcT1"
