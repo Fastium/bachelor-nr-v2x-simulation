@@ -27,7 +27,6 @@ PacketOutputDb::SetDb(SQLiteOutput* db, tableNames tableName, std::string name)
                   "PacketId INTEGER NOT NULL,"
                   "PacketSize INTEGER NOT NULL"
                   ");";
-            std::cout << cmd.str() << std::endl;
             break;
         case FRAME_TRACE:
             cmd << "CREATE TABLE IF NOT EXISTS " << name <<
@@ -105,9 +104,9 @@ void PacketOutputDb::SavePacketRx(const Ptr<const Packet> packet, const Address&
 {
     std::string txRx = "Rx";
     uint32_t p_id = packet->GetUid();
-//    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
-//    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
-//    std::cout << "Packet (" << p_id << ") server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+    std::cout << "Packet (" << p_id << ") server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
     this->Save(txRx, Simulator::Now().GetNanoSeconds(), p_id, packet->GetSize());
 }
 
@@ -115,9 +114,9 @@ void PacketOutputDb::SavePacketTx(const Ptr<const Packet> packet, const Address&
 {
     std::string txRx = "Tx";
     uint32_t p_id = packet->GetUid();
-//    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
-//    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
-//    std::cout << "Packet (" << p_id << ") client Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+    Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
+    Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
+    std::cout << "Packet (" << p_id << ") client Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
     this->Save(txRx, Simulator::Now().GetNanoSeconds(), p_id, packet->GetSize());
 }
 
@@ -148,6 +147,9 @@ void PacketOutputDb::SavePacketTxPhySpectrum(const SlTxDataPacketTraceParams tra
 
     for(it = pbList.begin(); it != pbList.end(); it++)
     {
-        this->Save(txRx, Simulator::Now().GetNanoSeconds(), (*it)->GetUid(), (*it)->GetSize());
+        double timeUs = Simulator::Now().GetNanoSeconds();
+        uint32_t p_id = (*it)->GetUid();
+        uint32_t p_size = (*it)->GetSize();
+        this->Save(txRx, timeUs, p_id, p_size);
     }
 }

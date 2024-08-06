@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     uint32_t activePoolId = MAC_ActivePoolId;
     double reservationPeriod = MAC_ReservationPeriod;
     uint32_t numSidelinkProcess = MAC_NumSidelinkProcess;
-    uint32_t initialMcs = 14;
+    uint32_t initialMcs = 28;
 
     // Node parameters
     uint32_t numRouters = NUM_ROUTERS;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     Time t_simulation = Seconds(simulationTime);
     // Sidelink bearers activation time
     Time t_slBearersActivation = Seconds(bearerActivationTime);
-    Time t_slBearersDelay = MilliSeconds(bearerDelay);
+    Time t_slBearersDelay = Seconds(bearerDelay);
 
     Time t_finalActivationBearers = t_slBearersActivation + t_slBearersDelay;
     Time t_finalSimulation = t_finalActivationBearers + t_simulation;
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
     nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(numSidelinkProcess));
     nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(true));
 
-    uint8_t bwpIdForGbrMcptt = 0;
+    uint8_t bwpIdForGbr = 0;
 
     nrHelper->SetBwpManagerTypeId(TypeId::LookupByName("ns3::NrSlBwpManagerUe"));
     // following parameter has no impact at the moment because:
@@ -293,12 +293,11 @@ int main(int argc, char* argv[])
     // 2. No scheduler to consider PQI
     // However, till such time all the NR SL examples should use GBR_MC_PUSH_TO_TALK
     // because we hard coded the PQI 65 in UE RRC.
-    nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_MC_PUSH_TO_TALK",
-                                               UintegerValue(bwpIdForGbrMcptt));
+    nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_MC_PUSH_TO_TALK",UintegerValue(bwpIdForGbr));
 
 
     std::set<uint8_t> bwpIdContainer;
-    bwpIdContainer.insert(bwpIdForGbrMcptt);
+    bwpIdContainer.insert(bwpIdForGbr);
 
     ////////////////////////////////////////////////////////////
     // 2. Attributes valid for a subset of the nodes
@@ -502,7 +501,7 @@ int main(int argc, char* argv[])
 
     Ipv4Address addr_server = dst->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
     Address socket_server = InetSocketAddress(addr_server, port);
-    Address socket_client = InetSocketAddress(Ipv4Address::GetAny(), port);
+//    Address socket_client = InetSocketAddress(Ipv4Address::GetAny(), port);
 
     tft = Create<LteSlTft>(LteSlTft::Direction::TRANSMIT, LteSlTft::CommType::Unicast, addr_server, dstL2);
     nrSlHelper->ActivateNrSlBearer(t_finalActivationBearers, allNetDevices, tft);
@@ -514,48 +513,38 @@ int main(int argc, char* argv[])
 // Application configuration
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Set Application in the UEs
-    OnOffHelper sidelinkClient("ns3::UdpSocketFactory", socket_server);
-    sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
-    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-//    std::cout << "Data rate : " << DataRate(dataRateBeString) << std::endl;
-    sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
-
-    ApplicationContainer clientApps = sidelinkClient.Install(src);
-    // onoff application will send the first packet at :
-    // finalSlBearersActivationTime + ((Pkt size in bits) / (Data rate in bits per sec))
-    clientApps.Start(t_finalActivationBearers);
-    clientApps.Stop(t_finalSimulation);
-
-    // Output app start, stop and duration
-//    double realAppStart = t_finalActivationBearers.GetSeconds() + ((double)udpPacketSizeBe * 8.0 / (DataRate(dataRateBeString).GetBitRate()));
-//    double appStopTime = (t_finalSimulation).GetSeconds();
-
-//    std::cout << "App start time " << realAppStart << " sec" << std::endl;
-//    std::cout << "App stop time " << appStopTime << " sec" << std::endl;
-
-    ApplicationContainer serverApps;
-    PacketSinkHelper sidelinkSink("ns3::UdpSocketFactory", socket_client);
-    sidelinkSink.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(APP_EnableSeqTsSizeHeader));
-    serverApps = sidelinkSink.Install(dst);
-    serverApps.Start(t_serverStart);
+//    OnOffHelper sidelinkClient("ns3::UdpSocketFactory", socket_server);
+//    sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+//    std::string dataRateBeString = std::to_string(dataRateBe) + "b/s";
+//    sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
+//
+//    ApplicationContainer clientApps = sidelinkClient.Install(src);
+//    clientApps.Start(t_finalActivationBearers);
+//    clientApps.Stop(t_finalSimulation);
+//
+//    ApplicationContainer serverApps;
+//    PacketSinkHelper sidelinkSink("ns3::UdpSocketFactory", socket_client);
+//    sidelinkSink.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(APP_EnableSeqTsSizeHeader));
+//    serverApps = sidelinkSink.Install(dst);
+//    serverApps.Start(t_serverStart);
 
 ////// UDP CLient - Server /////////////////////////////////////////////////////////////////////////
 //    // Client
-//    UdpClientHelper client(addr3, port);
-//    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
-//    client.SetAttribute("MaxPackets", UintegerValue(100));
-//    client.SetAttribute("Interval", TimeValue(Seconds(0.1)));
-//    client.SetAttribute("PacketSize", UintegerValue(UPD_PACKET_SIZE));
-//
-//    ApplicationContainer clientApps;
-//    clientApps.Add(client.Install(src));
-//    clientApps.Start(Seconds(5.0));
-//    clientApps.Stop(Seconds(30.0));
-//    //server
-//    ApplicationContainer serverApps;
-//    UdpServerHelper server(port);
-//    serverApps.Add(server.Install(dst));
-//    serverApps.Start(Seconds(4.0));
+    UdpClientHelper client(socket_server, port);
+    std::string dataRateBeString = std::to_string(dataRateBe) + "kb/s";
+    client.SetAttribute("MaxPackets", UintegerValue(10));
+    client.SetAttribute("Interval", TimeValue(MilliSeconds(10)));
+    client.SetAttribute("PacketSize", UintegerValue(udpPacketSizeBe)); //bytes
+
+    ApplicationContainer clientApps;
+    clientApps.Add(client.Install(src));
+    clientApps.Start(Seconds(5.0));
+    clientApps.Stop(Seconds(30.0));
+    //server
+    ApplicationContainer serverApps;
+    UdpServerHelper server(port);
+    serverApps.Add(server.Install(dst));
+    serverApps.Start(Seconds(4.0));
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Trace configuration
@@ -569,27 +558,29 @@ int main(int argc, char* argv[])
     ipLayerStats.SetDb(&db, PacketOutputDb::PACKET_TRACE, "ipLayerStats");
 
     PacketOutputDb phySpectrumStats;
-    phySpectrumStats.SetDb(&db, PacketOutputDb::FRAME_TRACE, "phySpectrumStats");
+    phySpectrumStats.SetDb(&db, PacketOutputDb::PACKET_TRACE, "phySpectrumStats");
 
     std::ostringstream path;
 
     path.str("");
-    path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
+//    path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::OnOffApplication/TxWithAddresses";
+    path << "/NodeList/" << src->GetId() << "/ApplicationList/0/$ns3::UdpClient/TxWithAddresses";
     Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketTx,&packetStats));
-//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetClientTx));
 
     path.str("");
-    path << "/NodeList/" << dst->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
+//    path << "/NodeList/" << dst->GetId() << "/ApplicationList/0/$ns3::PacketSink/RxWithAddresses";
+    path << "/NodeList/" << dst->GetId() << "/ApplicationList/0/$ns3::UdpServer/RxWithAddresses";
     Config::ConnectWithoutContext(path.str(),MakeCallback(&PacketOutputDb::SavePacketRx,&packetStats));
-//    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
+    Config::ConnectWithoutContext(path.str(), MakeCallback(&Utils::packetServerRx));
 
     path.str("");
     path << "/NodeList/" << dst->GetId() << "/$ns3::Ipv4L3Protocol/Rx";
     Config::ConnectWithoutContext(path.str(), MakeCallback(&PacketOutputDb::SavePacketRxIpLayer,&ipLayerStats));
 
-    path.str("");
-    path << "/NodeList/" << dst->GetId() <<  "/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/RxPsschTraceUe";
-    Config::ConnectWithoutContext(path.str(), MakeBoundCallback(&frameRx, &phySpectrumStats));
+//    path.str("");
+//    path << "/NodeList/" << dst->GetId() <<  "/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/RxPsschTraceUe";
+//    Config::ConnectWithoutContext(path.str(), MakeBoundCallback(&frameRx, &phySpectrumStats));
 
     path.str("");
     path << "/NodeList/" << src->GetId() << "/DeviceList/*/$ns3::NrUeNetDevice/ComponentCarrierMapUe/*/NrUePhy/NrSpectrumPhyList/*/TxSlDataTrace";
@@ -638,10 +629,16 @@ int main(int argc, char* argv[])
 
     Simulator::Destroy();
 
-//    cout << endl << endl << "--- Simulation completed --- " << endl << endl;
+    cout << endl << endl << "--- Simulation completed --- " << endl << endl;
 
-//    cout << "Packet application client sent : " << Utils::packetSent << endl;
-//    cout << "Packet application server received:  " << Utils::packetReceived << endl;
+    cout << "Packet application client sent : " << Utils::packetSent << endl;
+    cout << "Packet application server received:  " << Utils::packetReceived << endl;
+    double realAppStart = t_finalActivationBearers.GetSeconds() + udpPacketSizeBe / (dataRateBe);
+    cout << "Real application start : " << realAppStart << " s" << std::endl;
+
+    double throughputReal = Utils::packetReceived * udpPacketSizeBe * 8 / (t_finalSimulation.GetSeconds() - realAppStart);
+
+    cout << "Throughput real : " << throughputReal << " bps" << std::endl;
 
     return 0;
 }

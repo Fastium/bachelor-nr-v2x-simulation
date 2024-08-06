@@ -52,13 +52,13 @@ using namespace ns3;
 
 #define NR_H_PHY_TxPower                                30      // Transmission power of the UEs
 #define PHY_NOISE                                       5    // Noise power
-#define PHY_LATENCY                                   100000.0     // Latency of the PHY layer
-#define UPD_PACKET_SIZE                                 100     // Size of the packet sent by the UEs
-#define DATA_RATE_BE                                    1000     // Data rate of the best effort traffic
+#define PHY_LATENCY                                   100000.0     // Latency of the PHY layer (ns)
+#define UPD_PACKET_SIZE                                 8000     // Size of the packet sent by the UEs (bytes)
+#define DATA_RATE_BE                                    500000     // Data rate of the best effort traffic (bits per second)
 #define ANTENNA_NumRows                            1       // Number of rows of the antenna
 #define ANTENNA_NumColumns                         2       // Number of columns of the colomns
 
-#define EnableSensing                          false   // Enable the sensing
+#define EnableSensing                          true   // Enable the sensing
 #define MAC_T1                                     2       // T1
 #define MAC_T2                                     33       // T2
 #define MAC_ActivePoolId                           0       // Active pool ID
@@ -67,12 +67,12 @@ using namespace ns3;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TIME
-#define BEARER_ACTIVATION_TIME                          4
-#define SIMULATION_TIME                                 10
+#define BEARER_ACTIVATION_TIME                          5
+#define SIMULATION_TIME                                 20
 
 //                  --Don't change--
-#define BEARER_ACTIVATION_DELAY                         10
-#define SERVER_START_TIME                               2
+#define BEARER_ACTIVATION_DELAY                         0.01
+#define SERVER_START_TIME                               3
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // IP
