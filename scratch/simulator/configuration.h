@@ -46,29 +46,31 @@ using namespace ns3;
 #define NUM_ROUTERS                                          0       // Number of UEs
 #define UE_DISTANCE                               50      // Distance between SRC and DST
 
-#define SL_NUMEROLOGY_BWP                               2       // Numerology of the SL BWP
+#define SL_NUMEROLOGY_BWP                               0       // Numerology of the SL BWP
+#define SL_SUBCHANNEL_SIZE                              100      // Subchannel size of the SL BWP
+
 #define CENTRAL_FREQUENCY_BAND_SL                       5.89e9  // Central frequency of the SL BWP
 #define BANDWIDTH_BAND_SL                               400     // Bandwidth of the SL BWP
 
 #define NR_H_PHY_TxPower                                30      // Transmission power of the UEs
 #define PHY_NOISE                                       5    // Noise power
-#define PHY_LATENCY                                   100000.0     // Latency of the PHY layer (ns)
-#define UPD_PACKET_SIZE                                 8000     // Size of the packet sent by the UEs (bytes)
-#define DATA_RATE_BE                                    500000     // Data rate of the best effort traffic (bits per second)
+#define PHY_LATENCY                                   1000.0     // Latency of the PHY layer (ns)
+#define UPD_PACKET_SIZE                                 16000     // Size of the packet sent by the UEs (bytes)
+#define DATA_RATE_BE                                    10000000     // Data rate of the best effort traffic (bits per second)
 #define ANTENNA_NumRows                            1       // Number of rows of the antenna
 #define ANTENNA_NumColumns                         2       // Number of columns of the colomns
 
-#define EnableSensing                          true   // Enable the sensing
-#define MAC_T1                                     2       // T1
-#define MAC_T2                                     33       // T2
+#define EnableSensing                          false   // Enable the sensing
+#define MAC_T1                                     1       // T1
+#define MAC_T2                                     10       // T2
 #define MAC_ActivePoolId                           0       // Active pool ID
-#define MAC_ReservationPeriod                      100       // Reservation period
+#define MAC_ReservationPeriod                      50       // Reservation period
 #define MAC_NumSidelinkProcess                     4       // Number of sidelink process
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TIME
 #define BEARER_ACTIVATION_TIME                          5
-#define SIMULATION_TIME                                 20
+#define SIMULATION_TIME                                 10
 
 //                  --Don't change--
 #define BEARER_ACTIVATION_DELAY                         0.01
