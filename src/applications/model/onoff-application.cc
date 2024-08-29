@@ -359,6 +359,8 @@ OnOffApplication::SendPacket()
         header.SetSeq(m_seq++);
         header.SetSize(m_pktSize);
         NS_ABORT_IF(m_pktSize < header.GetSerializedSize());
+//        const uint8_t * buffer = (uint8_t*) "Dans un petit village, la vie s'écoulait paisiblement. Chaque matin, les habitants se retrouvaient au café pour discuter des nouvelles du jour. Les enfants jouaient dans les rues, riant aux éclats. Les saisons changeaient, apportant de nouveaux défis et joies, mais la communauté restait soudée et pleine d'espoir.";
+//        packet = Create<Packet>(buffer, m_pktSize - header.GetSerializedSize());
         packet = Create<Packet>(m_pktSize - header.GetSerializedSize());
         // Trace before adding header, for consistency with PacketSink
         m_txTraceWithSeqTsSize(packet, from, to, header);

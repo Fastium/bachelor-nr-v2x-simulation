@@ -3661,7 +3661,7 @@ LteUeRrc::AddNrSlDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
     lcInfo.lcGroup = 3; // as per 36.331 9.1.1.6
     // following parameters have no impact at the moment
     // GBR Mission Critical User Plane Push To Talk voice TS 23.501 Table 5.7.4-1
-    lcInfo.priority = 7;
+    lcInfo.priority = 1;
     lcInfo.pqi = 65;
     lcInfo.isGbr = true;
     lcInfo.gbr = 65535; // bits/s random value
@@ -3674,7 +3674,7 @@ LteUeRrc::AddNrSlDrb(uint32_t srcL2Id, uint32_t dstL2Id, uint8_t lcid)
     slDrbInfo->m_logicalChannelConfig.logicalChannelGroup = lcInfo.lcGroup;
     slDrbInfo->m_logicalChannelConfig.priority = lcInfo.priority;
     slDrbInfo->m_logicalChannelConfig.prioritizedBitRateKbps = lcInfo.gbr;
-    slDrbInfo->m_logicalChannelConfig.bucketSizeDurationMs = 1000; // Check this value \todo
+    slDrbInfo->m_logicalChannelConfig.bucketSizeDurationMs = 2000; // Check this value \todo
 
     if (m_srcL2Id == srcL2Id)
     {

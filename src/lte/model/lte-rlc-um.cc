@@ -35,7 +35,7 @@ NS_LOG_COMPONENT_DEFINE("LteRlcUm");
 NS_OBJECT_ENSURE_REGISTERED(LteRlcUm);
 
 LteRlcUm::LteRlcUm()
-    : m_maxTxBufferSize(10 * 1024),
+    : m_maxTxBufferSize(100 * 1024),
       m_txBufferSize(0),
       m_sequenceNumber(0),
       m_vrUr(0),
