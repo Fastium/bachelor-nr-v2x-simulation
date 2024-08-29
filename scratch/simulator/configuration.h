@@ -40,32 +40,46 @@ using namespace ns3;
 #define SIDELINK_DELAY                              0      // Delay of the S1u link in milliseconds
 #define SHADOWING_ENABLED                          false   // Enable the shadowing model
 #define SCENARIO                                  "v2v_Highway"     // Scenario
-#define ERROR_MODEL                                "ns3::NrEesmCcT1" // Error model
+//#define ERROR_MODEL                                "ns3::NrEesmCcT2" // Error model
+#define ERROR_MODEL                                "ns3::NrEesmIrT2" // Error model
+//#define ERROR_MODEL                                "ns3::LenaErrorModel" // Error model
+//#define ERROR_MODEL                                "ns3::NrLteMiErrorModel" // Error model
+//#define ERROR_MODEL                                "ns3::NrLteMiErrorModel" // Error model
 #define SIM_TAG                                    "default"     // Simulation tag
 
 #define NUM_ROUTERS                                          0       // Number of UEs
-#define UE_DISTANCE                               50      // Distance between SRC and DST
-
-#define SL_NUMEROLOGY_BWP                               0       // Numerology of the SL BWP
-#define SL_SUBCHANNEL_SIZE                              100      // Subchannel size of the SL BWP
+#define UE_DISTANCE                               10      // Distance between SRC and DST
 
 #define CENTRAL_FREQUENCY_BAND_SL                       5.89e9  // Central frequency of the SL BWP
+//#define CENTRAL_FREQUENCY_BAND_SL                       60e9  // Central frequency of the SL BWP
+
+#define NR_H_PHY_TxPower                                23      // Transmission power of the UEs
+#define PHY_NOISE                                       5    // Noise power
+#define PHY_LATENCY                                   100.0     // Latency of the PHY layer (us)
+#define UPD_PACKET_SIZE                                28000     // Size of the packet sent by the UEs (bytes)
+#define DATA_RATE_BE                                    1000000     // Data rate of the best effort traffic (bits per second)
+#define ANTENNA_NumRows                            2       // Number of rows of the antenna
+#define ANTENNA_NumColumns                         1       // Number of columns of the colomns
+
+#define MAC_ActivePoolId                           0       // Active pool ID
+#define MAC_NumSidelinkProcess                     4       // Number of sidelink process
+
+#define SL_NUMEROLOGY_BWP                               1       // Numerology of the SL BWP
+#define SL_SUBCHANNEL_SIZE                              10      // Subchannel size of the SL BWP
+#define MAC_FIX_MCS                                 27
 #define BANDWIDTH_BAND_SL                               400     // Bandwidth of the SL BWP
 
-#define NR_H_PHY_TxPower                                30      // Transmission power of the UEs
-#define PHY_NOISE                                       5    // Noise power
-#define PHY_LATENCY                                   1000.0     // Latency of the PHY layer (ns)
-#define UPD_PACKET_SIZE                                 16000     // Size of the packet sent by the UEs (bytes)
-#define DATA_RATE_BE                                    10000000     // Data rate of the best effort traffic (bits per second)
-#define ANTENNA_NumRows                            1       // Number of rows of the antenna
-#define ANTENNA_NumColumns                         2       // Number of columns of the colomns
-
 #define EnableSensing                          false   // Enable the sensing
-#define MAC_T1                                     1       // T1
-#define MAC_T2                                     10       // T2
-#define MAC_ActivePoolId                           0       // Active pool ID
+#define SL_SENSING_WINDOW                            100       // Sensing window (TO)
+#define SL_SELECTION_WINDOW                            1
 #define MAC_ReservationPeriod                      50       // Reservation period
-#define MAC_NumSidelinkProcess                     4       // Number of sidelink process
+#define MAC_T_PROC0                                1       // T_PROC0
+#define MAC_T1                                     1       // T1
+#define MAC_T2                                     5       // T2
+
+#define SL_FREQ_RESOURCE_PSCCH                        10
+#define SL_MAX_NUM_PER_RESERVE                         1
+#define MAC_RESOURCE_PERCENTAGE                   20       // Percentage of resource
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TIME

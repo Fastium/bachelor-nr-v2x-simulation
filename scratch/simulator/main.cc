@@ -54,7 +54,14 @@ int main(int argc, char* argv[])
     uint32_t activePoolId = MAC_ActivePoolId;
     double reservationPeriod = MAC_ReservationPeriod;
     uint32_t numSidelinkProcess = MAC_NumSidelinkProcess;
-    uint32_t initialMcs = 28;
+    uint32_t initialMcs = MAC_FIX_MCS;
+    uint32_t tproc0 = MAC_T_PROC0;
+
+    uint32_t resourcePercentage = MAC_RESOURCE_PERCENTAGE;
+    uint32_t sensingWindow = SL_SENSING_WINDOW;
+    uint32_t selectionWindow = SL_SELECTION_WINDOW;
+    uint32_t freqResourcePscch = SL_FREQ_RESOURCE_PSCCH;
+    uint32_t slMaxNumPerReserve = SL_MAX_NUM_PER_RESERVE;
 
     // Node parameters
     uint32_t numRouters = NUM_ROUTERS;
@@ -218,7 +225,7 @@ int main(int argc, char* argv[])
     const uint8_t numCcPerBand = 1; // Number of component carriers per band
 
     /*
-     * RMa : Returns Merchandise Authorization
+     * RMa : Rural Macrocell
      * UMa : Unlicensed Mobile Access
      * Umi : Urban Microcell
      */
@@ -277,6 +284,9 @@ int main(int argc, char* argv[])
 
     // Physical layer configuration
     nrHelper->SetUePhyAttribute("TxPower", DoubleValue(txPower));
+    nrHelper->SetUePhyAttribute("NoiseFigure", DoubleValue(phyNoise));
+    nrHelper->SetUePhyAttribute("LBTThresholdForCtrl", TimeValue(MicroSeconds(25)));
+    nrHelper->SetUePhyAttribute("TbDecodeLatency", TimeValue(MicroSeconds(phyLatency)));
 
     // Mac layer configuration
     nrHelper->SetUeMacAttribute("EnableSensing", BooleanValue(enableSensing));
@@ -286,6 +296,11 @@ int main(int argc, char* argv[])
     nrHelper->SetUeMacAttribute("ReservationPeriod", TimeValue(MilliSeconds(reservationPeriod)));
     nrHelper->SetUeMacAttribute("NumSidelinkProcess", UintegerValue(numSidelinkProcess));
     nrHelper->SetUeMacAttribute("EnableBlindReTx", BooleanValue(true));
+    nrHelper->SetUeMacAttribute("Tproc0", UintegerValue(tproc0));
+    nrHelper->SetUeMacAttribute("ResourcePercentage", UintegerValue(resourcePercentage));
+
+    // Spectrum configuration
+    nrHelper->SetUeSpectrumAttribute("UnlicensedMode", BooleanValue(true));
 
     uint8_t bwpIdForGbr = 0;
 
@@ -362,14 +377,15 @@ int main(int argc, char* argv[])
     LteRrcSap::SlResourcePoolNr slResourcePoolNr;
     Ptr<NrSlCommPreconfigResourcePoolFactory> ptrFactory = Create<NrSlCommPreconfigResourcePoolFactory>();
 
-    std::vector<std::bitset<1>> slBitmap = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+//    std::vector<std::bitset<1>> slBitmap = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    std::vector<std::bitset<1>> slBitmap = {1};
 
     ptrFactory->SetSlTimeResources(slBitmap);
-    ptrFactory->SetSlSensingWindow(100); // T0 in ms
-    ptrFactory->SetSlSelectionWindow(5);
-    ptrFactory->SetSlFreqResourcePscch(10); // PSCCH RBs
+    ptrFactory->SetSlSensingWindow(sensingWindow); // T0 in ms
+    ptrFactory->SetSlSelectionWindow(selectionWindow);
+    ptrFactory->SetSlFreqResourcePscch(freqResourcePscch); // PSCCH RBs
     ptrFactory->SetSlSubchannelSize(subchannelSize);
-    ptrFactory->SetSlMaxNumPerReserve(3);
+    ptrFactory->SetSlMaxNumPerReserve(slMaxNumPerReserve);
     // Once parameters are configured, we can create the pool
     LteRrcSap::SlResourcePoolNr pool = ptrFactory->CreatePool();
     slResourcePoolNr = pool;
@@ -415,7 +431,8 @@ int main(int argc, char* argv[])
 
     // Configure the TddUlDlConfigCommon IE
     LteRrcSap::TddUlDlConfigCommon tddUlDlConfigCommon;
-    tddUlDlConfigCommon.tddPattern = "UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|";
+    tddUlDlConfigCommon.tddPattern = "UL|";
+//    tddUlDlConfigCommon.tddPattern = "UL|UL|UL|UL|UL|UL|UL|UL|UL|UL|";
 //    tddUlDlConfigCommon.tddPattern = "DL|DL|DL|F|UL|UL|UL|UL|UL|UL|";
 
     // Configure the SlPreconfigGeneralNr IE
@@ -518,6 +535,7 @@ int main(int argc, char* argv[])
     // Set Application in the UEs
     OnOffHelper sidelinkClient("ns3::UdpSocketFactory", socket_server);
     sidelinkClient.SetAttribute("EnableSeqTsSizeHeader", BooleanValue(true));
+
     std::string dataRateBeString = std::to_string(dataRateBe) + "b/s";
     sidelinkClient.SetConstantRate(DataRate(dataRateBeString), udpPacketSizeBe);
 

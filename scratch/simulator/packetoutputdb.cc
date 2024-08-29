@@ -4,9 +4,18 @@
 
 #include "packetoutputdb.h"
 
+std::string GetTime()
+{
+    std::ostringstream time;
+    time << Simulator::Now().GetSeconds() << ":" << Simulator::Now().GetMilliSeconds() << ":" << Simulator::Now().GetMicroSeconds() << ":" << Simulator::Now().GetNanoSeconds();
+    return time.str();
+}
+
 PacketOutputDb::PacketOutputDb()
 {
 }
+
+
 
 void
 PacketOutputDb::SetDb(SQLiteOutput* db, tableNames tableName, std::string name)
@@ -106,7 +115,7 @@ void PacketOutputDb::SavePacketRx(const Ptr<const Packet> packet, const Address&
     uint32_t p_id = packet->GetUid();
     Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
     Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
-    std::cout << "Packet (" << p_id << ") server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+    std::cout << "Time : " << Simulator::Now().GetNanoSeconds() << "  --  Packet (" << p_id << ") server Rx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
     this->Save(txRx, Simulator::Now().GetNanoSeconds(), p_id, packet->GetSize());
 }
 
@@ -116,7 +125,7 @@ void PacketOutputDb::SavePacketTx(const Ptr<const Packet> packet, const Address&
     uint32_t p_id = packet->GetUid();
     Ipv4Address src = InetSocketAddress::ConvertFrom(srcAddress).GetIpv4();
     Ipv4Address dest = InetSocketAddress::ConvertFrom(destAddress).GetIpv4();
-    std::cout << "Packet (" << p_id << ") client Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
+    std::cout << "Time : " << Simulator::Now().GetNanoSeconds() << "  --  Packet (" << p_id << ") client Tx: " << packet->GetSize() << " bytes from " <<  src << " to " << dest << std::endl;
     this->Save(txRx, Simulator::Now().GetNanoSeconds(), p_id, packet->GetSize());
 }
 
