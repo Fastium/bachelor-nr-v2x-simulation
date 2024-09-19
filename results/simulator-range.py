@@ -26,6 +26,7 @@ arguments = Parameters()
 
 arguments.dataRateBe = 1000000
 arguments.udpPacketSizeBe = 28000
+arguments.bandwidthBandSl = 100
 
 
 
@@ -154,7 +155,7 @@ plt.ylabel('Range (m)')
 plt.show()
 
 data.update({"Sheet 1": [limit_power, limit_range]})
-save_data("range-1000m-v4.ods", data)
+save_data("range-1000m-v5.ods", data)
 
 
 
