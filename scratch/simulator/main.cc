@@ -312,7 +312,6 @@ int main(int argc, char* argv[])
     // because we hard coded the PQI 65 in UE RRC.
     nrHelper->SetUeBwpManagerAlgorithmAttribute("GBR_MC_PUSH_TO_TALK",UintegerValue(bwpIdForGbr));
 
-
     std::set<uint8_t> bwpIdContainer;
     bwpIdContainer.insert(bwpIdForGbr);
 

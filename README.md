@@ -1,24 +1,47 @@
 # Bachelor ns-3 simulator
 The goal of this simulator is to measure latency and throughput on a precise use case for a NR V2X mesh network on 
-into-train communication (between consist).
+into-train communication (between consist). The C++ simulator is based on ns-3 with the 5GLena extension which contains the V2X application.
 
-## Tasks
+# Prerequisites
+I recommend to use a Linux distribution to run the simulator. The simulator is tested on Ubuntu 20.04 LTS.
 
-### Bugs
-Fix the output file for db with the cmake project (optional)
+## NS-3
+| Prerequisite ns-3 | Version |
+|-------------------|---------|
+| C++ compiler      | clang++ or g++ (g++ version 9 or greater)|
+| Python            | 3.6 or greater |
+| CMake             | 3.13 or greater |
+| Build system      | make, ninja, xcodebuild(XCode)|
 
-### Scenario 1
-- Create a simple scenario with 2 nodes
-  - learn how to transmit packets
-  - make the new instruction for the simulator 
-  - learn about the model of the simulator
-  - learn how to export data from the simulator
+All the prerequisites are available on the official website of ns-3 : [ns-3 getting started](https://www.nsnam.org/docs/release/3.40/tutorial/html/getting-started.html)
 
-### Scenario 2
-- mesh integration
-  - 2 possibilities
+## 5GLena
+For the usages, you need some libraries and tools to build the 5GLena module.
 
-## Build the simulator
+Install libc6-dev (it provides semaphore.h header file).  The Ubuntu
+package name is:
+
+``` terminal
+sudo apt-get install libc6-dev
+```
+
+Install sqlite:
+``` terminal
+apt-get install sqlite sqlite3 libsqlite3-dev
+```
+
+Notice that ns-3 and nr prerequisites are required (otherwise you will get an error, e.g: fatal error: ns3/sqlite-output.h).
+
+
+All the prerequisites are available on the official website of 5GLena : [5GLena GitLab](https://gitlab.com/cttc-lena/nr/)
+
+# Usages
+
+To start, I recommend to read the [5GLena Gitlab](https://gitlab.com/cttc-lena/nr/-/tree/5g-lena-v2x-v0.3.y?ref_type=heads) and the [ns-3 documentation](https://www.nsnam.org/docs/release/3.40/tutorial/html/index.html).
+
+## By terminal
+To run these commands, you need to be in the simulator folder.
+
 With examples :
 ```terminal
 ./ns3 clean
@@ -31,158 +54,33 @@ Without examples :
 ./ns3 configure --build-profile=debug --enable-tests
 ./ns3 build
 ```
+
 Optimized build profile is for real simulation :
 ```terminal
 ./ns3 clean
 ./ns3 configure --build-profile=optimized --enable-tests
 ./ns3 build
 ```
-It is possible to build in another build profile like optimized for real simulation **(to see in the document of ns-3 in 
-right version)**.
-## Control the status
-```terminal
-./ns3 show profile
+
+To run the simulation (It runs one time the simulation. For more you need the python script):
+```terminal 
+./ns3 run scratch/simulator/main.cc
 ```
 
-Answer :
+## Clion
 
-```terminal
-Build profile: debug
-```
+All informations for Clion are avaibles on the ns-3 documentation : [ns-3 Clion](https://www.nsnam.org/docs/release/3.40/tutorial/html/getting-started.html#jetbrains-clion)
 
-## Simulator on scratch
+In the jetbrains project there is some build profiles to start simulation with python scripts which are in the 
+[simulator_script](simulator_script) folder. These python's scripts are used to start the simulations with some flexible 
+parameters. They allow to run the simulation with different parameters without recompiling the simulator. They are running the simulator
+with the command line. All the measurements are saved in .db files to transmit them from the CPP simulator to the python script.
 
-### Directory
-
-Each simulator.cc with some other .cc and .h have to be in the same subdirectory for working.
-
-#### Analyse example
-### NrPointToPointEpcHelper
-1. set attribute "S1uLinkDelay" to 0ms
-2. assign IP address with the net device container
-
-### NrHelper
-1. set the epcHelper
-2. set the attributes (channel, bands, antenna, PHY, MAC, bandwidth part manager)
-3. install and get the net device container
-4. assign its stream
-
-### NrSlHelper
-1. set the epcHelper
-2. set the attributes
-3. prepare the ues for sidelink with the net device container and the bwp id container
-4. install the preconfig for net device container
-5. assign its stream
-6. activate the nr sidelink bearer
-
-### Measure and save latency and throughput
-### Channel model
-### Mesh network
-
-## Input parameters
-
-- size of the data in the packet
-- throughput
-- error model
-- central frequency
-
-## Output parameters
-- latency
-- distance
-- node
-- packets index
-
-## Simulation scenario
-## UE-to-UE communication with distance
-In this case, the goal is to control the maximum rate of throughput, the size of the packet and the number of packets sent.
-Then we can export the real latency and throughput with the parameters.
+The CPP simulator main file is [main.cc](scratch/simulator/main.cc).
 
 ## Versions
-
-Version : ns-3.40 \
-module : 5GLena v2x 0.3
-
-## Installation
-
-Get ns-3 env (v3.40) : https://www.nsnam.org/releases/ns-3-40/download/ \
-Extract the tar.bz2 in the directory you want 
-
-```terminal
-tar -xvf ns-allinone-3.40.tar.bz2
-```
-
-Move inside the directory 
-
-```terminal
-cd ./ns-allinone-3.40
-```
-
-Get 5GLena with v2x extension : https://gitlab.com/cttc-lena/nr/-/blob/5g-lena-v2x-v0.3.y/README.md?ref_type=heads
-
-Install the ns-3 with V2X extension
-
-```terminal
-git clone https://gitlab.com/cttc-lena/ns-3-dev.git
-cd ns-3-dev
-```
-
-Download the nr module
-
-```terminal
-
-cd contrib
-git clone https://gitlab.com/cttc-lena/nr.git
-```
-
-Switch to the latest NR release branch with V2X extensions
-
-```terminal
-
-cd nr
-git checkout 5g-lena-v2x-v0.3.y
-```
-
-```terminal
-
-cd ../..
-git checkout -b v2x-lte-dev origin/v2x-lte-dev
-```
-
-Make a detached head
-
-```terminal
-git checkout ns-3-dev-v2x-v0.3
-```
-
-Configure and build the simulator
-
-```terminal
-./ns3 configure --enable-tests --enable-examples
-```
-
-```terminal
-./ns3 build
-```
-
-```terminal
-./ns3 run "cttc-nr-v2x-demo-simple"
-```
-
-Make all in one :
-
-```terminal
-git clone https://gitlab.com/cttc-lena/ns-3-dev.git
-cd ./ns-3-dev/contrib
-git clone https://gitlab.com/cttc-lena/nr.git
-cd ./nr
-git checkout 5g-lena-v2x-v0.3.y
-cd ../..
-git checkout -b v2x-lte-dev origin/v2x-lte-dev
-git checkout -b simulator ns-3-dev-v2x-v0.3
-```
-
-```terminal
-
-```
-
+| Name | Version |
+|------|---------|
+| NS-3 | 3.40    |
+|  5GLena    |    v2x 0.3     |
 

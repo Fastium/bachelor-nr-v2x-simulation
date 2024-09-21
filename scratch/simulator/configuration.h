@@ -57,7 +57,7 @@ using namespace ns3;
 #define PHY_NOISE                                       5    // Noise power
 #define PHY_LATENCY                                   100.0     // Latency of the PHY layer (us)
 #define UPD_PACKET_SIZE                                28000     // Size of the packet sent by the UEs (bytes)
-#define DATA_RATE_BE                                    1000000     // Data rate of the best effort traffic (bits per second)
+#define DATA_RATE_BE                                    500000     // Data rate of the best effort traffic (bits per second)
 #define ANTENNA_NumRows                            2       // Number of rows of the antenna
 #define ANTENNA_NumColumns                         1       // Number of columns of the colomns
 
@@ -67,7 +67,7 @@ using namespace ns3;
 #define SL_NUMEROLOGY_BWP                               1       // Numerology of the SL BWP
 #define SL_SUBCHANNEL_SIZE                              10      // Subchannel size of the SL BWP
 #define MAC_FIX_MCS                                 27
-#define BANDWIDTH_BAND_SL                               400     // Bandwidth of the SL BWP
+#define BANDWIDTH_BAND_SL                               100     // Bandwidth of the SL BWP
 
 #define EnableSensing                          false   // Enable the sensing
 #define SL_SENSING_WINDOW                            100       // Sensing window (TO)
